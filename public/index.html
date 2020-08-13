@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antarmuka Web Pengontrol</title>
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/apexcharts.css">
+</head>
+<body>
+    <h1>Panel Kontrol (Versi Alpha)</h1>
+    <div class="bagian-lampu">
+        <h2>Lampu</h2>
+        <div style="display: flex; flex-wrap: wrap; flex-direction: column; justify-content: space-evenly; align-items: center;">
+            <div class="kotak-lampu">
+                Pameran: <span id="pameran" class="lampu">OFF</span>
+            </div>
+            <div class="kotak-lampu">
+                Dekat Skylight: <span id="dekat-skylight" class="lampu">OFF</span>
+            </div>
+            <div class="kotak-lampu">
+                Panggung: <span id="panggung" class="lampu">OFF</span>
+            </div>
+        </div>
+    </div>
+    <div class="bagian-batas">
+        <h2>Batas Minimal Iluminansi</h2>
+        <div style="display: flex; flex-wrap: wrap; flex-direction: column; justify-content: space-evenly; align-items: center;">
+            <div class="kotak-batas">
+                <form id="pameran" class="batas">
+                    <label for="batas-pameran">Set Batas (Pameran): </label>
+                    <input type="text" id="batas-pameran" value="43">
+                    <input type="submit" value="Set">
+                </form>
+            </div>
+            <div class="kotak-batas">
+                <form id="jalan" class="batas">
+                    <label for="batas-jalan">Set Batas (Jalan): </label>
+                    <input type="text" id="batas-jalan" value="43">
+                    <input type="submit" value="Set">
+                </form>
+            </div>
+            <div class="kotak-batas">
+                <form id="panggung" class="batas">
+                    <label for="batas-panggung">Set Batas (Panggung): </label>
+                    <input type="text" id="batas-panggung" value="43">
+                    <input type="submit" value="Set">
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="bagian-sensor">
+        <h2>Sensor</h2>
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-evenly; align-items: center;">
+            <div class="kotak-sensor">
+                Pameran: <span id="pameran" class="sensor">0</span> lx
+                <div id="pameran" class="grafik"></canvas></div>
+            </div>
+            <div class="kotak-sensor">
+                Bawah Skylight: <span id="bawah-skylight" class="sensor">0</span> lx
+                <div id="bawah-skylight" class="grafik"></div>
+            </div>
+            <div class="kotak-sensor">
+                Panggung: <span id="panggung" class="sensor">0</span> lx
+                <div id="panggung" class="grafik"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script src="script/mqtt.min.js"></script>
+<script src="script/apexcharts.min.js"></script>
+<script src="script/chartOpts.js"></script>
+<script src="script/index.js"></script>

@@ -3,6 +3,7 @@
 */
 
 // Include some needed libraries
+#include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <BH1750.h>

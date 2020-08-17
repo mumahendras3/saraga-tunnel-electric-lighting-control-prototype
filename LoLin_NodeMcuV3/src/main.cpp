@@ -34,7 +34,7 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 // Sensors
 // Numbering format: [I2C_Mux_Number][I2C_Mux_Channel][Low/High_Addr_Pin]
-hp_BH1750 sensors[2][8][2];
+hp_BH1750 sensors[NUM_TCA][NUM_TCA_CH][2];
 
 // Global variables
 const char* ssid = "Wisma Thullabul Ilmi";
@@ -63,6 +63,18 @@ void sensorsInit() {
           abort();
         }
         sensors[i][j][k].calibrateTiming();
+        count++;
+      }
+    }
+  }
+}
+
+void sensorsStart() {
+  uint8_t count = 0;
+  for (uint8_t i = 0; count < NUM_BH1750 && i < NUM_TCA; i++) {
+    for (uint8_t j = 0; count < NUM_BH1750 && j < NUM_TCA_CH; j++) {
+      for (uint8_t k = 0; count < NUM_BH1750 && k < 2; k++) {
+        sensors[i][j][k].start();
         count++;
       }
     }

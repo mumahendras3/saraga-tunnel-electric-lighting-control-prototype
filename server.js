@@ -9,10 +9,13 @@ const dbURL = 'mongodb://' + dbUser + ':' + dbPass + '@' + mongodbHost + ':' + m
 // Some more variable definitions
 const mqttPort = 1883; // MQTT server port
 const httpPort = 3000; // HTTP web server port
-const totalData = 3; // the total number of sensor readings to collect per cycle
-const waitTime = 1000; // time (in ms) to wait before rechecking if all sensors have sent their readings
-var data = []; // temporary data holder
-var db; // variable to store the database object after successfull connection to MongoDB
+const totalData = 3; // The total number of sensor readings to collect per cycle
+const waitTime = 1000; // Time (in ms) to wait before rechecking if all sensors have sent their readings
+const illuminanceRegex = /Ē\n([0-9]+)\slx/m; // The regex to parse the desired illuminance value from the given pdf files
+const setpointsDir = "setpoints" // the directory that contains all the pdf files that will be parsed
+var setpoints = []; // An array to hold all the setpoints data at runtime
+var data = []; // Temporary data holder
+var db; // Variable to store the database object after successfull connection to MongoDB
 
 // Function definitions
 function simpanData(waktu) {
@@ -33,6 +36,58 @@ function simpanData(waktu) {
         }
     }, waitTime);
 }
+function readSetpoints(setpointsDir, setpointsArray, regex) {
+    fs.readdir(setpointsDir, (err, files) => {
+        if (err) throw err;
+        if (files.length == 0) {
+            console.log("No files found in " + setpointsDir + "/, skipping read setpoints...");
+            return;
+        }
+        // Reset the given setpointsArray first
+        // Using splice() method in order to modify directly the given global setpoints array,
+        // not a local copy of it (i.e. to do a pass-by-reference for the setpointsArray parameter).
+        setpointsArray.splice(0, setpointsArray.length);
+        files.forEach(file => {
+            if (path.posix.extname(file) != ".pdf") return;
+            let setpoint = {};
+            fs.readFile(setpointsDir + "/" + file, (err, dataBuffer) => {
+                if (err) throw err;
+                pdf(dataBuffer).then(data => {
+                    // let match = regex.exec(data.text);
+                    // console.log(match[1]);
+                    setpoint['illuminance'] = regex.exec(data.text)[1];
+                });
+            });
+            let split = file.replace(".pdf", "").toLowerCase().split("-");
+            setpoint['time'] = split[0];
+            setpoint['area'] = split[1].replace(/\s|_+/g, "-");
+            setpointsArray.push(setpoint);
+        });
+    });
+}
+function sendSetpoints(setpointsArray) {
+    if (setpointsArray.length == 0) {
+        console.log("The given setpoints array is empty, skipping send setpoints...");
+        return;
+    }
+    let now = new Date();
+    let timeStr = ("0" + now.getHours()).slice(-2) + "." + ("0" + now.getMinutes()).slice(-2);
+    setpointsArray.forEach(setpoint => {
+        if (setpoint.time == timeStr) {
+            aedes.publish({
+                topic: "set/setpoint/" + setpoint.area,
+                payload: setpoint.illuminance,
+                retain: true
+            });
+        }
+    });
+}
+
+// Initialize the setpoints array
+const fs = require('fs');
+const path = require('path');
+const pdf = require('pdf-parse');
+readSetpoints(setpointsDir, setpoints, illuminanceRegex);
 
 // Initialize an MQTT server
 const aedes = require('aedes')({id: 'mqtt-server'});
@@ -81,3 +136,6 @@ aedes.on('publish', (packet, client) => {
             break;
     }
 });
+
+// Run setInterval() on sendSetpoints() with 1 second delay
+const timeoutSetpoints = setInterval(sendSetpoints, 1000, setpoints);

@@ -1,49 +1,58 @@
-.lampu {
-    border: 0.1rem solid black;
-    border-radius: 50%;
-    background-color: grey;
-    color: white;
-    width: 2rem;
-    height: 2rem;
-    line-height: 2rem;
-    text-align: center;
-    display: inline-block;
-    font-size: small;
+.image {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
 }
 
 body {
     margin: 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-        'judul judul'
-        'lampu batas'
-        'sensor sensor';
 }
 
 h1 {
     text-align: center;
-    grid-area: judul;
 }
 
-div h2 {
+h2 {
     text-align: center;
 }
 
-.bagian-lampu {
-    grid-area: lampu;
+h3 {
+    text-align: center;
 }
 
-.bagian-batas {
-    grid-area: batas;
+.section {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: space-evenly; 
+    align-items: center;
 }
 
-.bagian-sensor {
-    grid-area: sensor;
+form.section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.kotak-lampu {
-    margin: .5rem auto;
+.subsection-lamp {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.lamp {
+    border: 0.25rem solid black;
+    border-radius: 50%;
+    background-color: grey;
+    color: white;
+    font-size: 1.2rem;
+    width: 3.5rem;
+    height: 3.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .kotak-batas {

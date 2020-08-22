@@ -4,68 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Antarmuka Web Pengontrol</title>
-    <link rel="stylesheet" href="css/index.css">
     <link rel="stylesheet" href="css/apexcharts.css">
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-    <h1>Panel Kontrol (Versi Alpha)</h1>
-    <div class="bagian-lampu">
-        <h2>Lampu</h2>
-        <div style="display: flex; flex-wrap: wrap; flex-direction: column; justify-content: space-evenly; align-items: center;">
-            <div class="kotak-lampu">
-                Pameran: <span id="pameran" class="lampu">OFF</span>
-            </div>
-            <div class="kotak-lampu">
-                Dekat Skylight: <span id="dekat-skylight" class="lampu">OFF</span>
-            </div>
-            <div class="kotak-lampu">
-                Panggung: <span id="panggung" class="lampu">OFF</span>
-            </div>
+    <h1>Tata Letak Bangunan</h1>
+    <img src="images/place_holder.png" alt="Tata Letak Bangunan" class="image">
+    <h1>Panel Kontrol</h1>
+    <h2>Pengaturan Lampu</h2>
+    <div class="section">
+        <div class="subsection-lamp">
+            <div class="lamp" id="pejalan-kaki-1">OFF</div>
+            <h3>Pejalan Kaki 1</h3>
+        </div>
+        <div class="subsection-lamp">
+            <div class="lamp" id="pejalan-kaki-2">OFF</div>
+            <h3>Pejalan Kaki 2</h3>
+        </div>
+        <div class="subsection-lamp">
+            <div class="lamp" id="pejalan-kaki-3">OFF</div>
+            <h3>Pejalan Kaki 3</h3>
+        </div>
+        <div class="subsection-lamp">
+            <div class="lamp" id="pejalan-kaki-4">OFF</div>
+            <h3>Pejalan Kaki 4</h3>
+        </div>
+        <div class="subsection-lamp">
+            <div class="lamp" id="pameran-poster-1">OFF</div>
+            <h3>Pameran Poster 1</h3>
+        </div>
+        <div class="subsection-lamp">
+            <div class="lamp" id="pameran-poster-2">OFF</div>
+            <h3>Pameran Poster 2</h3>
+        </div>
+        <div class="subsection-lamp">
+            <div class="lamp" id="meja-dan-kursi-1">OFF</div>
+            <h3>Meja dan Kursi 1</h3>
+        </div>
+        <div class="subsection-lamp">
+            <div class="lamp" id="meja-dan-kursi-2">OFF</div>
+            <h3>Meja dan Kursi 2</h3>
+        </div>
+        <div class="subsection-lamp">
+            <div class="lamp" id="meja-dan-kursi-3">OFF</div>
+            <h3>Meja dan Kursi 3</h3>
+        </div>
+        <div class="subsection-lamp">
+            <div class="lamp" id="panggung-serbaguna">OFF</div>
+            <h3>Panggung Serbaguna</h3>
         </div>
     </div>
-    <div class="bagian-batas">
-        <h2>Batas Minimal Iluminansi</h2>
-        <div style="display: flex; flex-wrap: wrap; flex-direction: column; justify-content: space-evenly; align-items: center;">
-            <div class="kotak-batas">
-                <form id="pameran" class="batas">
-                    <label for="batas-pameran">Set Batas (Pameran): </label>
-                    <input type="text" id="batas-pameran" value="43">
-                    <input type="submit" value="Set">
-                </form>
-            </div>
-            <div class="kotak-batas">
-                <form id="jalan" class="batas">
-                    <label for="batas-jalan">Set Batas (Jalan): </label>
-                    <input type="text" id="batas-jalan" value="43">
-                    <input type="submit" value="Set">
-                </form>
-            </div>
-            <div class="kotak-batas">
-                <form id="panggung" class="batas">
-                    <label for="batas-panggung">Set Batas (Panggung): </label>
-                    <input type="text" id="batas-panggung" value="43">
-                    <input type="submit" value="Set">
-                </form>
-            </div>
+    <h2>Pengaturan Batas Iluminansi</h2>
+    <h3>Format penamaan berkas: jam.menit-nama_tempat.pdf (nama_tempat tidak boleh mengandung "-")</h3>
+    <form enctype="multipart/form-data" class="section">
+        <input type="file" name="upload" accept=".pdf" multiple>
+        <input type="submit" value="Upload">
+    </form>
+    <h2>Iluminansi Rata-Rata</h2>
+    <div class="section">
+        <div class="kotak-sensor">
+            Pameran: <span id="pameran" class="sensor">0</span> lx
+            <div id="pameran" class="grafik"></canvas></div>
+        </div>
+        <div class="kotak-sensor">
+            Bawah Skylight: <span id="bawah-skylight" class="sensor">0</span> lx
+            <div id="bawah-skylight" class="grafik"></div>
+        </div>
+        <div class="kotak-sensor">
+            Panggung: <span id="panggung" class="sensor">0</span> lx
+            <div id="panggung" class="grafik"></div>
         </div>
     </div>
-    <div class="bagian-sensor">
-        <h2>Sensor</h2>
-        <div style="display: flex; flex-wrap: wrap; justify-content: space-evenly; align-items: center;">
-            <div class="kotak-sensor">
-                Pameran: <span id="pameran" class="sensor">0</span> lx
-                <div id="pameran" class="grafik"></canvas></div>
-            </div>
-            <div class="kotak-sensor">
-                Bawah Skylight: <span id="bawah-skylight" class="sensor">0</span> lx
-                <div id="bawah-skylight" class="grafik"></div>
-            </div>
-            <div class="kotak-sensor">
-                Panggung: <span id="panggung" class="sensor">0</span> lx
-                <div id="panggung" class="grafik"></div>
-            </div>
-        </div>
-    </div>
+    <h1>Distribusi Iluminansi Hasil Simulasi</h1>
+    <div id="section-simulation"></div>
 </body>
 </html>
 <script src="script/mqtt.min.js"></script>

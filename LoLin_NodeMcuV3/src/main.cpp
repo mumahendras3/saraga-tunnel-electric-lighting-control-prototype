@@ -15,8 +15,7 @@
 #define PIN_SCL D2
 
 // I2C device address definitions
-#define TCA_ADDR0 0x70
-#define TCA_ADDR1 0x71
+#define TCA_ADDR_DEF 0x70
 
 // Total number of various things definitions
 #define NUM_TCA 2
@@ -40,54 +39,105 @@ hp_BH1750 sensors[NUM_TCA][NUM_TCA_CH][2];
 const char* ssid = "Wisma Thullabul Ilmi";
 const char* password = "udruskitabersama";
 const char* mqtt_server = "192.168.43.188";
-float batas = 43; // untuk iluminance threshold
-float iluminansi; // untuk sensor readings
+bool start_measurement;
+bool processed_all;
+bool processed[NUM_TCA][NUM_TCA_CH][2];
+bool skip_index[NUM_TCA][NUM_TCA_CH][2] = {false};
+float lux[NUM_TCA][NUM_TCA_CH][2]; // For light sensor readings
+float batas = 43; // For illuminance threshold
 
 // Function definitions
-void sensorsInit() {
+void sensors_init() {
   uint8_t count = 0;
-  bool sensorIsFound;
+  bool sensor_is_found;
   for (uint8_t i = 0; count < NUM_BH1750 && i < NUM_TCA; i++) {
     for (uint8_t j = 0; count < NUM_BH1750 && j < NUM_TCA_CH; j++) {
+      tca_select(TCA_ADDR_DEF + i, j);
       for (uint8_t k = 0; count < NUM_BH1750 && k < 2; k++) {
         if (k == 0) {
-          sensorIsFound = sensors[i][j][k].begin(BH1750_TO_GROUND);
+          sensor_is_found = sensors[i][j][k].begin(BH1750_TO_GROUND);
         }
         else {
-          sensorIsFound = sensors[i][j][k].begin(BH1750_TO_VCC);
+          sensor_is_found = sensors[i][j][k].begin(BH1750_TO_VCC);
         }
-        // Print error and abort the program if no sensor is found
-        if (!sensorIsFound) {
+        if (sensor_is_found) {
+          sensors[i][j][k].calibrateTiming();
+          count++;
+        }
+        // Print error if no sensor is found and set the skip_index flag to "true"
+        else {
           Serial.println("Couldn't find sensor" + i + j + k);
-          Serial.flush();
-          abort();
+          skip_index[i][j][k] = true;
         }
-        sensors[i][j][k].calibrateTiming();
-        count++;
       }
     }
+    tca_disable(TCA_ADDR_DEF + i);
   }
 }
 
-void sensorsStart() {
+void sensors_start() {
+  processed_all = false;
+  start_measurement = false;
   uint8_t count = 0;
   for (uint8_t i = 0; count < NUM_BH1750 && i < NUM_TCA; i++) {
     for (uint8_t j = 0; count < NUM_BH1750 && j < NUM_TCA_CH; j++) {
+      tca_select(TCA_ADDR_DEF + i, j);
       for (uint8_t k = 0; count < NUM_BH1750 && k < 2; k++) {
-        sensors[i][j][k].start();
-        count++;
+        if (!skip_index[i][j][k]) {
+          sensors[i][j][k].adjustSettings(90, true);
+          sensors[i][j][k].start();
+          processed[i][j][k] = false;
+          count++;
+        }
       }
     }
+    tca_disable(TCA_ADDR_DEF + i);
   }
 }
 
-void tcaSelect(uint8_t address, uint8_t channel) {
+bool sensors_read() {
+  uint8_t count = 0;
+  bool _processed_all = true;
+  for (uint8_t i = 0; count < NUM_BH1750 && i < NUM_TCA; i++) {
+    for (uint8_t j = 0; count < NUM_BH1750 && j < NUM_TCA_CH; j++) {
+      tca_select(TCA_ADDR_DEF + i, j);
+      for (uint8_t k = 0; count < NUM_BH1750 && k < 2; k++) {
+        if (!skip_index[i][j][k]) {
+          if (sensors[i][j][k].hasValue() && !processed[i][j][k]) {
+            lux[i][j][k] = sensors[i][j][k].getLux();
+            processed[i][j][k] = true;
+          }
+          _processed_all = _processed_all && processed[i][j][k];
+          count++;
+        }
+      }
+    }
+    tca_disable(TCA_ADDR_DEF + i);
+  }
+  return _processed_all;
+}
+
+float lux_avg(const uint8_t index[][3], uint8_t num_sensors) {
+  uint8_t n;
+  // Return -1 if one of the sensors with the given index hasn't finished measuring yet
+  for (n = 0; n < num_sensors; n++) {
+    if (!processed[index[n][0]][index[n][1]][index[n][2]]) return -1;
+  }
+  // Calculating the average lux
+  float sum = 0;
+  for (n = 0; n < num_sensors; n++) {
+    sum += lux[index[n][0]][index[n][1]][index[n][2]];
+  }
+  return sum / num_sensors;
+}
+
+void tca_select(uint8_t address, uint8_t channel) {
   Wire.beginTransmission(address);
   Wire.write(1 << channel);
   Wire.endTransmission();  
 }
 
-void tcaDisable(uint8_t address) {
+void tca_disable(uint8_t address) {
   Wire.beginTransmission(address);
   Wire.write(0);  // no channel selected
   Wire.endTransmission();
@@ -162,10 +212,17 @@ void reconnect() {
 
 // Setup routines
 void setup() {
+  Serial.begin(9600);
+  while (!Serial); // loop until serial monitor is ready
   pinMode(PIN_LED, OUTPUT);
   digitalWrite(PIN_LED, LOW);
   Wire.begin(PIN_SDA, PIN_SCL);
-  Serial.begin(9600);
+  // Make sure all I2C mux channel are disabled at first start
+  for (uint8_t i = 0; i < NUM_TCA; i++) tca_disable(TCA_ADDR_DEF + i);
+  // Initialize all sensors
+  sensors_init();
+  // Start first time measurement
+  sensors_start();
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
@@ -177,9 +234,11 @@ void loop() {
     reconnect();
   }
   client.loop();
-//  Serial.print("Iluminansi: ");
-//  Serial.print(iluminansi);
-//  Serial.println(" lx");
+  if (start_measurement) sensors_start();
+  if (!processed_all) processed_all = sensors_read();
+  // Serial.print("Iluminansi: ");
+  // Serial.print(iluminansi);
+  // Serial.println(" lx");
   if (iluminansi > batas) {
     digitalWrite(PIN_LED, LOW);
     client.publish("status/lampu/" LAMPU_1, "OFF");

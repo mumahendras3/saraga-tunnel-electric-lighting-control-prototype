@@ -14,36 +14,36 @@ client.subscribe("status/#");
 // Get elements
 let uploadForm = document.querySelector('form.section');
 let uploadInput = document.querySelector('[name=upload]');
-let sensor = {};
-let lampu = {};
-let grafik = {};
-document.querySelectorAll(".sensor").forEach(function(element){
-    sensor[element.id] = element;
+let illuminances = {};
+let lamps = {};
+let charts = {};
+document.querySelectorAll(".illuminance").forEach(function(element){
+    illuminances[element.id] = element;
 });
-document.querySelectorAll(".lampu").forEach(function(element){
-    lampu[element.id] = element;
+document.querySelectorAll(".lamp").forEach(function(element){
+    lamps[element.id] = element;
 });
-document.querySelectorAll(".grafik").forEach(function(element){
-    grafik[element.id] = [];
+document.querySelectorAll(".chart").forEach(function(element){
+    charts[element.id] = [];
     new ApexCharts(element, genChartOpts(element.id)).render();
 });
 
 // Function definitions
 function statusLampu(id, status) {
-    lampu[id].innerHTML = status;
+    lamps[id].innerHTML = status;
     if (status == "ON") {
-        lampu[id].style.backgroundColor = "red";
+        lamps[id].style.backgroundColor = "red";
     }
     else {
-        lampu[id].style.backgroundColor = "grey";
+        lamps[id].style.backgroundColor = "grey";
     }
 };
 function statusSensor(id, value) {
     // Store the new data in temporary storage and increase dataCounter
-    grafik[id].push({y: value});
+    charts[id].push({y: value});
     dataCounter += 1;
     // Show the new iluminance value in the web page
-    sensor[id].innerHTML = value;
+    illuminances[id].innerHTML = value;
 };
 function statusWaktu(waktu) {
     // Convert unix timestamp to hour:minute:seconds
@@ -54,12 +54,12 @@ function statusWaktu(waktu) {
     // Loop until all sensors have sent their readings
     const loop = setInterval(() => {
         if (dataCounter >= totalData) {
-            // add timestamp to each new data and update the graph
-            for (const key in grafik) {
-                if (grafik.hasOwnProperty(key)) {
-                    grafik[key][grafik[key].length - 1]['x'] = timeStr;
-                    if (grafik[key].length > 7) grafik[key].shift();
-                    ApexCharts.exec(key, 'updateSeries', [{data: grafik[key]}]);
+            // add timestamp to each new data and update the chart
+            for (const key in charts) {
+                if (charts.hasOwnProperty(key)) {
+                    charts[key][charts[key].length - 1]['x'] = timeStr;
+                    if (charts[key].length > 7) charts[key].shift();
+                    ApexCharts.exec(key, 'updateSeries', [{data: charts[key]}]);
                 }
             }
             dataCounter = 0;
@@ -78,11 +78,14 @@ function upload(form) {
     const FD = new FormData(form);
     // Define what happens on successful data submission
     XHR.addEventListener("load", event => {
-      alert(event.target.responseText);
+        alert(event.target.responseText);
+        // Give some time for the server to extract the simulation images from
+        // the uploaded pdfs and then refresh the displayed simulation images
+        setTimeout(addImgNode, 2000, 'section-simulation');
     });
     // Define what happens in case of error
     XHR.addEventListener("error", event => {
-      alert('Oops! Something went wrong.');
+        alert('Oops! Something went wrong.');
     });
     // Set up our request
     XHR.open("POST", "/upload");
@@ -93,28 +96,34 @@ function addImgNode(id) {
     fetch('/get-images')
     .then(res => res.json())
     .then(res => {
+        if (res == []) return;
         let parentNode = document.getElementById(id);
+        // Empty the parent node first
+        parentNode.textContent = '';
         let count = 0; // To prevent double titles
-        res.forEach(file => {
-            if (file == 'place_holder.png') return;
-            // Save the area name first
-            let areaName = file.slice(0, -6);
+        res.forEach(path => {
+            // Extract the time and area information first
+            const baseNameNoExt = path.slice(0, -6).split('/')[1];
+            const split = baseNameNoExt.split('-');
+            const time = split[0];
+            const areaName = split[1].replace(/_+/g, ' '); // Just in case there are underscores
+            const title = areaName + ' (' + time + ')';
             // Create the image node
             let imgElement = document.createElement('img');
             // Set the img source
-            imgElement.setAttribute('src', 'images/' + file);
+            imgElement.setAttribute('src', path);
             // Setting the appropriate alt text
             let altStr = 'Simulasi distribusi iluminansi di area ';
-            altStr += areaName;
+            altStr += title;
             imgElement.setAttribute('alt', altStr);
             // Set the class to 'image'
             imgElement.setAttribute('class', 'image');
             // Attach all new nodes to the parent node
             // Create only 1 title for each image pair (illuminance dist. and its legend)
             if (count < 1) {
-                let title = document.createElement('h2');
-                title.innerHTML = areaName;
-                parentNode.appendChild(title)
+                let titleElement = document.createElement('h2');
+                titleElement.innerHTML = title;
+                parentNode.appendChild(titleElement);
                 count++;
             }
             else {
@@ -141,8 +150,8 @@ client.on('message', function(topic, payload){
     let split = topic.split("/");
     let payloadStr = payload.toString();
     switch (split[0] + "/" + split[1]) {
-        case "status/lampu": statusLampu(split[2], payloadStr); break;
-        case "status/sensor": statusSensor(split[2], parseFloat(payloadStr)); break;
+        case "status/lamp": statusLampu(split[2], payloadStr); break;
+        case "status/illuminance": statusSensor(split[2], parseFloat(payloadStr)); break;
         case "status/waktu": statusWaktu(payloadStr); break;
     }
 });

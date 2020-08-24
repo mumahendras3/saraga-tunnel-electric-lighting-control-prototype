@@ -11,7 +11,8 @@ const mqttPort = 1883; // MQTT server port
 const httpPort = 3000; // HTTP web server port
 const totalData = 3; // The total number of sensor readings to collect per cycle
 const waitTime = 1000; // Time (in ms) to wait before rechecking if all sensors have sent their readings
-const illuminanceRegex = /Ē\n([0-9.]+)\slx/m; // The regex to parse the desired illuminance value from the given pdf files
+const illuminanceRegex = /Ē\n([0-9.]+)\slx/; // The regex to parse the desired illuminance value from the given pdf files
+const dimmingRegex = /Dimming\sValue\s=\s([0-9.]+)%/;
 const setpointsDir = 'setpoints'; // the directory that contains all setpoint json files
 const imagesDir = 'public/images'; // Public images directory
 const binDir = 'bin'; // external executable files directory
@@ -39,7 +40,7 @@ function simpanData(waktu) {
         }
     }, waitTime);
 }
-function readSetpoints(setpointsDir, setpointsArray, regex) {
+function readSetpoints(setpointsDir, setpointsArray, illumRegex, dimRegex) {
     fs.readdir(setpointsDir, (err, files) => {
         if (err) throw err;
         if (files.length == 0) {
@@ -58,7 +59,8 @@ function readSetpoints(setpointsDir, setpointsArray, regex) {
                 pdf(dataBuffer).then(data => {
                     // let match = regex.exec(data.text);
                     // console.log(match[1]);
-                    setpoint['illuminance'] = regex.exec(data.text)[1];
+                    setpoint['illuminance'] = illumRegex.exec(data.text)[1];
+                    setpoint['dimming'] = dimRegex.exec(data.text)[1];
                 }, err => {
                     throw err;
                 });
@@ -80,8 +82,13 @@ function sendSetpoints(setpointsArray, lastSendTime) {
     setpointsArray.forEach(setpoint => {
         if (setpoint.time == timeStr && setpoint.time != lastSendTime[setpoint.area]) {
             aedes.publish({
-                topic: 'set/setpoint/' + setpoint.area,
+                topic: 'set/illuminance/' + setpoint.area,
                 payload: setpoint.illuminance,
+                retain: true
+            });
+            aedes.publish({
+                topic: 'set/dimming/' + setpoint.area,
+                payload: setpoint.dimming,
                 retain: true
             });
             lastSendTime[setpoint.area] = setpoint.time;
@@ -91,12 +98,12 @@ function sendSetpoints(setpointsArray, lastSendTime) {
 function extractImages(pdfDir, imgDir) {
     fs.readdir(pdfDir, (err, files) => {
         files.forEach(file => {
-            let binPath = path.posix.join(binDir, 'pdfimages.exe');
-            let pdfPath = path.posix.join(pdfDir, file);
-            let split = file.replace('.pdf', '').split('-');
-            let imgPath = path.posix.join(imgDir, split[1].replace(/_+/g, ' '));
-            const child = execFile(binPath, ['-j', '-l', '1', pdfPath, imgPath], (error, stdout, stderr) => {
-                if (error) throw error;
+            const binPath = path.posix.join(binDir, 'pdfimages.exe');
+            const pdfPath = path.posix.join(pdfDir, file);
+            const fileNameNoExt = file.replace('.pdf', '');
+            const imgPath = path.posix.join(imgDir, fileNameNoExt);
+            const child = execFile(binPath, ['-j', '-l', '1', pdfPath, imgPath], (err, stdout, stderr) => {
+                if (err) throw err;
                 // Rename the image files so the order is right
                 // <file_name>-1.jpg for the illuminance distribution image
                 // <file_name>-2.jpg for the illuminance distribution legend image
@@ -128,7 +135,7 @@ function extractImages(pdfDir, imgDir) {
 const fs = require('fs');
 const path = require('path');
 const pdf = require('pdf-parse');
-readSetpoints(setpointsDir, setpoints, illuminanceRegex);
+readSetpoints(setpointsDir, setpoints, illuminanceRegex, dimmingRegex);
 
 // Extract -map and -legend jpg images from setpoint pdfs
 extractImages(setpointsDir, imagesDir);
@@ -158,11 +165,11 @@ app.post('/upload', async (req, res) => {
     if (Array.isArray(req.files.upload)) {
         try {
             for (let i = 0; i < req.files.upload.length; i++) {
-                await req.files.upload[i].mv(path.posix.join(setpointsDir, req.files.upload[i].name));
+                await req.files.upload[i].mv(path.posix.join(setpointsDir, req.files.upload[i].name.replace(/\s+/g, '_')));
             }
             res.send('Files uploaded successfully!');
             // Reread all setpoint values
-            readSetpoints(setpointsDir, setpoints, illuminanceRegex);
+            readSetpoints(setpointsDir, setpoints, illuminanceRegex, dimmingRegex);
             // Extract all illuminance distribution images from the setpoint pdfs
             extractImages(setpointsDir, imagesDir);
         } catch (error) {
@@ -171,14 +178,14 @@ app.post('/upload', async (req, res) => {
     }
     // For single file
     else {
-        req.files.upload.mv(path.posix.join(setpointsDir, req.files.upload.name), error => {
+        req.files.upload.mv(path.posix.join(setpointsDir, req.files.upload.name.replace(/\s+/g, '_')), error => {
             if (error) {
                 res.status(500).send('Oops! Something went wrong.\n\n' + error);
             }    
             else {
                 res.send('File uploaded successfully!');
                 // Reread all setpoint values
-                readSetpoints(setpointsDir, setpoints, illuminanceRegex);
+                readSetpoints(setpointsDir, setpoints, illuminanceRegex, dimmingRegex);
                 // Extract all illuminance distribution images from the setpoint pdfs
                 extractImages(setpointsDir, imagesDir);
             }    
@@ -189,8 +196,12 @@ app.post('/upload', async (req, res) => {
 app.get('/get-images', (req, res) => {
     fs.readdir(imagesDir, (err, files) => {
         if (err) return res.status(500).send('Oops! Something went wrong.\n\n' + err);
-        let fileList = JSON.stringify(files);
-        res.send(fileList);
+        let pathArray = [];
+        for (let i = 0; i < files.length; i++) {
+            if (files[i] == 'place_holder.png') continue;
+            pathArray.push(path.posix.join(imagesDir.split('/')[1], files[i]));
+        }
+        res.send(JSON.stringify(pathArray));
     });
 });
 const httpServer = require('http').createServer(app);

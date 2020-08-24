@@ -21,6 +21,12 @@ h3 {
     text-align: center;
 }
 
+h4 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
 .section {
     display: flex;
     flex-wrap: wrap;
@@ -35,7 +41,7 @@ form.section {
     align-items: center;
 }
 
-.subsection-lamp {
+.subsection {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -55,34 +61,26 @@ form.section {
     align-items: center;
 }
 
-.kotak-batas {
-    margin: .5rem auto;
+.chart {
+    width: 40rem;
 }
 
-.kotak-sensor {
-    text-align: center;
-}
-
-.grafik {
-    width: 340px;
-}
-
-@media only screen and (min-width: 370px) {
-    /* small size */
+/* small size */
+/* @media only screen and (min-width: 370px) {
     .kotak-sensor {
         width: 90%;
     }
-    .grafik {
+    .chart {
         width: 100%;
     }
-}
+} */
 
-@media only screen and (min-width: 550px) {
-    /* medium size */
+/* medium size */
+/* @media only screen and (min-width: 550px) {
     .kotak-sensor {
         width: unset;
     }
-    .grafik {
+    .chart {
         width: 30rem;
     }
-}
+} */

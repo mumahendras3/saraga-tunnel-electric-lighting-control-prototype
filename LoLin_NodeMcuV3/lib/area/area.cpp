@@ -1,0 +1,86 @@
+#include "area.hpp"
+
+// Class for creating an area object that consists of an LED group and a sensor group
+area::area(uint8_t num_sensors, uint8_t num_leds, uint8_t led_index, float distance) : 
+    num_sensors(num_sensors),
+    num_leds(num_leds),
+    led_index(led_index),
+    distance(distance)
+    {}
+// Method to set sensor addresses for the area
+void area::set_address(uint8_t arr[][3]) {
+    for (uint8_t i = 0; i < num_sensors; i++) {
+        for (uint8_t j = 0; j < 3; j++) {
+            addr[i][j] = arr[i][j];
+        }
+    }
+}
+// Method to initialize all sensors in the area
+void area::sensors_init() {
+    for (uint8_t n = 0; n < num_sensors; n++) {
+        bool initialized = false;
+        tca_select(TCA_ADDR_DEF + addr[n][0], addr[n][1]);
+        if (addr[n][2] == 0) {
+            initialized = sensor[n].begin(BH1750_TO_GROUND);
+        }
+        else {
+            initialized = sensor[n].begin(BH1750_TO_VCC);
+        }
+        if (initialized) {
+            sensor[n].calibrateTiming();
+        }
+        else {
+            // Print error if no sensor is found
+            Serial.print("Couldn't find sensor at {");
+            Serial.print(addr[n][0] + ", ");
+            Serial.print(addr[n][1] + ", ");
+            Serial.println(addr[n][2] + "}");
+        }
+        tca_disable(TCA_ADDR_DEF + addr[n][0]);
+    }
+}
+// Method to start measurement for all sensors in the area
+void area::sensors_start(bool forcePreShot) {
+    for (uint8_t n = 0; n < num_sensors; n++) {
+        tca_select(TCA_ADDR_DEF + addr[n][0], addr[n][1]);
+        sensor[n].adjustSettings(90, forcePreShot);
+        sensor[n].start();
+        tca_disable(TCA_ADDR_DEF + addr[n][0]);
+    }
+}
+// Method to check if all sensors in the area have finished measuring
+bool area::sensors_finished() {
+    bool finished = true;
+    for (uint8_t n = 0; n < num_sensors; n++) {
+        tca_select(TCA_ADDR_DEF + addr[n][0], addr[n][1]);
+        finished = finished && sensor[n].hasValue();
+        tca_disable(TCA_ADDR_DEF + addr[n][0]);
+    }
+    return finished;
+}
+// Method to calculate the average illuminance of all sensors in the area
+void area::calc_lux() {
+    float sum = 0;
+    for (uint8_t n = 0; n < num_sensors; n++) {
+      sum += sensor[n].getLux();
+    }
+    avg_lux = sum / num_sensors;
+}
+// Method to apply the brightness and RGB value of this LED group to the LED strip
+void area::leds_apply(Adafruit_NeoPixel * strip) {
+    uint8_t r = red * brightness / 100;
+    uint8_t g = green * brightness / 100;
+    uint8_t b = blue * brightness / 100;
+    uint32_t color = strip->Color(r, g, b);
+    strip->fill(color, led_index, num_leds);
+}
+// Method to adapt the brightness value so that the average illuminance target can be achieved
+void area::brightness_adapt() {
+    brightness =
+    (brightness*(LUM_RED*red + LUM_GREEN*green + LUM_BLUE*blue)/100 + (avg_lux_target - avg_lux)*255000*distance*distance/num_sensors)*100 /
+    (LUM_RED*new_red + LUM_GREEN*new_green + LUM_BLUE*new_blue);
+    // Also save the new RGB value as the current one
+    red = new_red;
+    green = new_green;
+    blue = new_blue;
+}

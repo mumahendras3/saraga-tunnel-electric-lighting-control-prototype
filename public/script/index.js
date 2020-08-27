@@ -1,75 +1,86 @@
 // Constants and variables definitions
 const serverAddress = 'localhost'; // MQTT server address
 const serverPort = 3000; // MQTT server port (using websocket)
-const totalData = 3; // the total number of sensor readings to collect per cycle
-const waitTime = 500; // time (in ms) to wait before rechecking if all sensors have sent their readings
-let dataCounter = 0; // counter to keep track of how many sensor readings have been collected per cycle
+const xAxisNum = 11; // Maximum number of X axis categories for all charts
 
 // MQTT Setup
 const client = mqtt.connect('ws://' + serverAddress + ':' + serverPort);
 
 // Subscribe to some topics
-client.subscribe("status/#");
+client.subscribe('status/#');
 
 // Get elements
 let uploadForm = document.querySelector('form.section');
 let uploadInput = document.querySelector('[name=upload]');
 let illuminances = {};
 let lamps = {};
-let charts = {};
-document.querySelectorAll(".illuminance").forEach(function(element){
+let chartsData = {};
+document.querySelectorAll('.illuminance').forEach(function(element){
     illuminances[element.id] = element;
 });
-document.querySelectorAll(".lamp").forEach(function(element){
+document.querySelectorAll('.lamp').forEach(function(element){
     lamps[element.id] = element;
 });
-document.querySelectorAll(".chart").forEach(function(element){
-    charts[element.id] = [];
+document.querySelectorAll('.chart').forEach(function(element){
+    chartsData[element.id] = [];
     new ApexCharts(element, genChartOpts(element.id)).render();
 });
 
 // Function definitions
-function statusLampu(id, status) {
-    lamps[id].innerHTML = status;
-    if (status == "ON") {
-        lamps[id].style.backgroundColor = "red";
-    }
-    else {
-        lamps[id].style.backgroundColor = "grey";
-    }
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+function invertRgb(colorObj) {
+    return Object.keys(colorObj).length != 0 && colorObj.constructor === Object ? {
+        r: 255 - colorObj.r,
+        g: 255 - colorObj.g,
+        b: 255 - colorObj.b
+    } : null;
+}
+function colorPreview(event) {
+    lamps[event.target.id].textContent = '';
+    lamps[event.target.id].style.backgroundColor = event.target.value;
+}
+function colorSet(event) {
+    const color = hexToRgb(event.target.value);
+    const r = String(color.r);
+    const g = String(color.g);
+    const b = String(color.b);
+    client.publish('set/lamp/' + event.target.id + '/red' , r, {retain: true});
+    client.publish('set/lamp/' + event.target.id + '/green' , g, {retain: true});
+    client.publish('set/lamp/' + event.target.id + '/blue' , b, {retain: true});
+    lamps[event.target.id].textContent = '...';
+    lamps[event.target.id].style.backgroundColor = event.target.value;
+    // Invert the text color so it's readable
+    const inverted = invertRgb(color);
+    const invertedStr = 'rgb(' + inverted.r + ', ' + inverted.g + ', ' + inverted.b + ')';
+    lamps[event.target.id].style.color = invertedStr;
+}
+function updateLamp(area, payload) {
+    // payload format sent from microcontroller is 'red|green|blue|brightness|ISO_timestamp' (string)
+    const split = payload.split('|');
+    lamps[area].textContent = split[3] + '%';
+    lamps[area].style.backgroundColor = 'rgb(' + split[0] + ', ' + split[1] + ', ' + split[2] + ')';
+    // Invert the text color so it's readable
+    const inverted = invertRgb({r: split[0], g: split[1], b: split[2]});
+    const invertedStr = 'rgb(' + inverted.r + ', ' + inverted.g + ', ' + inverted.b + ')';
+    lamps[area].style.color = invertedStr;
 };
-function statusSensor(id, value) {
-    // Store the new data in temporary storage and increase dataCounter
-    charts[id].push({y: value});
-    dataCounter += 1;
+function updateIlluminance(area, payload) {
+    // payload format sent from microcontroller is 'lux|time' (string)
+    const split = payload.split('|');
+    const time = new Date(split[1]);
+    const timeStr = ('0' + time.getHours()).slice(-2) + '.' + ('0' + time.getMinutes()).slice(-2);
+    chartsData[area].push({x: timeStr, y: parseFloat(split[0])});
+    if (chartsData[area].length > xAxisNum) chartsData[area].shift();
+    ApexCharts.exec(area, 'updateSeries', [{data: chartsData[area]}]);
     // Show the new iluminance value in the web page
-    illuminances[id].innerHTML = value;
-};
-function statusWaktu(waktu) {
-    // Convert unix timestamp to hour:minute:seconds
-    let time = new Date(waktu);
-    let timeStr = ('0' + time.getHours()).slice(-2) + ':';
-    timeStr += ('0' + time.getMinutes()).slice(-2) + ':';
-    timeStr += ('0' + time.getSeconds()).slice(-2);
-    // Loop until all sensors have sent their readings
-    const loop = setInterval(() => {
-        if (dataCounter >= totalData) {
-            // add timestamp to each new data and update the chart
-            for (const key in charts) {
-                if (charts.hasOwnProperty(key)) {
-                    charts[key][charts[key].length - 1]['x'] = timeStr;
-                    if (charts[key].length > 7) charts[key].shift();
-                    ApexCharts.exec(key, 'updateSeries', [{data: charts[key]}]);
-                }
-            }
-            dataCounter = 0;
-            clearInterval(loop);
-        }
-    }, waitTime);
-};
-function setBatas(event) {
-    event.preventDefault();
-    client.publish("set/" + this.className + "/" + this.id, this.children[1].value);
+    illuminances[area].textContent = split[0] + ' lx';
 };
 function upload(form) {
     // Create a new XMLHttpRequest (XHR) DOM object instance
@@ -77,37 +88,40 @@ function upload(form) {
     // Bind the FormData object and the form element
     const FD = new FormData(form);
     // Define what happens on successful data submission
-    XHR.addEventListener("load", event => {
+    XHR.addEventListener('load', event => {
         alert(event.target.responseText);
         // Give some time for the server to extract the simulation images from
         // the uploaded pdfs and then refresh the displayed simulation images
         setTimeout(addImgNode, 2000, 'section-simulation');
     });
     // Define what happens in case of error
-    XHR.addEventListener("error", event => {
+    XHR.addEventListener('error', event => {
         alert('Oops! Something went wrong.');
     });
     // Set up our request
-    XHR.open("POST", "/upload");
+    XHR.open('POST', '/upload');
     // The data sent is what the user provided in the form
     XHR.send(FD);
 }
 function addImgNode(id) {
     fetch('/get-images')
     .then(res => res.json())
-    .then(res => {
+    .then(async res => {
         if (res == []) return;
         let parentNode = document.getElementById(id);
         // Empty the parent node first
         parentNode.textContent = '';
-        let count = 0; // To prevent double titles
-        res.forEach(path => {
+        const setpoints = await getSetpoints();
+        if (setpoints == []) return;
+        res.forEach((path, index) => {
             // Extract the time and area information first
             const baseNameNoExt = path.slice(0, -6).split('/')[1];
             const split = baseNameNoExt.split('-');
             const time = split[0];
             const areaName = split[1].replace(/_+/g, ' '); // Just in case there are underscores
-            const title = areaName + ' (' + time + ')';
+            let title = areaName + ' (' + time + ', Ē = ';
+            if (index % 2 == 0) title += setpoints[index/2].illuminance + ' lx)';
+            else title += setpoints[(index-1)/2].illuminance + ' lx)';
             // Create the image node
             let imgElement = document.createElement('img');
             // Set the img source
@@ -120,39 +134,39 @@ function addImgNode(id) {
             imgElement.setAttribute('class', 'image');
             // Attach all new nodes to the parent node
             // Create only 1 title for each image pair (illuminance dist. and its legend)
-            if (count < 1) {
+            if (index % 2 == 0) {
                 let titleElement = document.createElement('h2');
-                titleElement.innerHTML = title;
+                titleElement.textContent = title;
                 parentNode.appendChild(titleElement);
-                count++;
-            }
-            else {
-                count--;
+                
             }
             parentNode.appendChild(imgElement);
         });
     })
     .catch(err => console.error(err));
 }
-
+async function getSetpoints() {
+    const res = await fetch('/get-setpoints');
+    return res.json();
+}
 // Attaching functions to some events
-document.querySelectorAll("form.batas").forEach(function(element){
-    element.addEventListener("submit", setBatas);
+document.querySelectorAll('[type=color]').forEach(function(element) {
+    element.addEventListener('input', colorPreview, false);
+    element.addEventListener('change', colorSet, false);
 });
 uploadForm.addEventListener('submit', event => {
     event.preventDefault();
     upload(uploadForm);
-    uploadInput.value = "";
+    uploadInput.value = '';
 });
 
 // MQTT upon receive
 client.on('message', function(topic, payload){
-    let split = topic.split("/");
-    let payloadStr = payload.toString();
-    switch (split[0] + "/" + split[1]) {
-        case "status/lamp": statusLampu(split[2], payloadStr); break;
-        case "status/illuminance": statusSensor(split[2], parseFloat(payloadStr)); break;
-        case "status/waktu": statusWaktu(payloadStr); break;
+    const split = topic.split('/');
+    const payloadStr = payload.toString();
+    switch (split[0] + '/' + split[1]) {
+        case 'status/lamp': updateLamp(split[2], payloadStr); break;
+        case 'status/illuminance': updateIlluminance(split[2], payloadStr); break;
     }
 });
 

@@ -51,9 +51,10 @@ form.section {
 .lamp {
     border: 0.25rem solid black;
     border-radius: 50%;
-    background-color: grey;
+    background-color: gray;
     color: white;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    font-weight: bolder;
     width: 3.5rem;
     height: 3.5rem;
     display: flex;

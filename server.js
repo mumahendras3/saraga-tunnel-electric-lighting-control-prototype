@@ -1,44 +1,60 @@
 // Database info to be used
 const mongodbHost = 'localhost';
 const mongodbPort = '27017';
-const dbName = 'kontrol_pencahayaan_buatan';
+const dbName = 'saraga-tunnel-artificial-lighting-control-prototype';
 const dbUser = 'rikhen';
-const dbPass = 'sukses';
+const dbPass = 'success';
 const dbURL = 'mongodb://' + dbUser + ':' + dbPass + '@' + mongodbHost + ':' + mongodbPort + '/' + dbName;
 
 // Some more variable definitions
 const mqttPort = 1883; // MQTT server port
 const httpPort = 3000; // HTTP web server port
-const totalData = 3; // The total number of sensor readings to collect per cycle
-const waitTime = 1000; // Time (in ms) to wait before rechecking if all sensors have sent their readings
 const illuminanceRegex = /Ē\n([0-9.]+)\slx/; // The regex to parse the desired illuminance value from the given pdf files
-const dimmingRegex = /Dimming\sValue\s=\s([0-9.]+)%/;
+const brightnessRegex = /Dimming\sValue\s=\s([0-9.]+)%/;
 const setpointsDir = 'setpoints'; // the directory that contains all setpoint json files
 const imagesDir = 'public/images'; // Public images directory
 const binDir = 'bin'; // external executable files directory
+let db; // Variable to store the database object after successfull connection to MongoDB
 let setpoints = []; // An array to hold all the setpoints data at runtime
 let sent = {}; // An object that contains the last time setpoints have been sent for each area/location
-let data = []; // Temporary data holder
-let db; // Variable to store the database object after successfull connection to MongoDB
 
 // Function definitions
-function simpanData(waktu) {
-    // Loop until all sensors have sent their readings
-    const loop = setInterval(() => {
-        if (data.length >= totalData && mongoClient.isConnected()) {
-            // add timestamp to each data
-            data.forEach(datum => {
-                datum['waktu'] = waktu;
-            });
-            // Send all data to MongoDB
-            db.collection('data_sensor').insertMany(data, {forceServerObjectId: true}, (err, res) => {
-                if (err) throw err;
-                console.log('Successfully sent the following data to MongoDB:', data); // for debugging
-                data = []; // reset the data holder
-                clearInterval(loop);
-            });
+function saveLampData(area, payload) {
+    // payload format sent from microcontroller is 'red|green|blue|brightness|ISO_timestamp' (string)
+    const split = payload.split('|');
+    // Defining the filter and update object to be passed to MongoDB server
+    const filter = {time: split[4], area: area};
+    const update = {
+        $set: {
+            lamp: {
+                red: parseInt(split[0]),
+                green: parseInt(split[1]),
+                blue: parseInt(split[2]),
+                brightness: parseInt(split[3])
+            }
         }
-    }, waitTime);
+    }
+    // Send the data to MongoDB
+    db.collection('data').updateOne(filter, update, {upsert: true}, (err, res) => {
+        if (err) throw err;
+        console.log('Successfully sent the following data to MongoDB:', update.$set); // for debugging
+    });
+}
+function saveIlluminanceData(area, payload) {
+    // payload format sent from microcontroller is 'lux|time' (string)
+    const split = payload.split('|');
+    // Defining the filter and update object to be passed to MongoDB server
+    const filter = {time: split[1], area: area};
+    const update = {
+        $set: {
+            illuminance: parseFloat(split[0])
+        }
+    }
+    // Send the data to MongoDB
+    db.collection('data').updateOne(filter, update, {upsert: true}, (err, res) => {
+        if (err) throw err;
+        console.log('Successfully sent the following data to MongoDB:', update.$set); // for debugging
+    });
 }
 function readSetpoints(setpointsDir, setpointsArray, illumRegex, dimRegex) {
     fs.readdir(setpointsDir, (err, files) => {
@@ -60,12 +76,12 @@ function readSetpoints(setpointsDir, setpointsArray, illumRegex, dimRegex) {
                     // let match = regex.exec(data.text);
                     // console.log(match[1]);
                     setpoint['illuminance'] = illumRegex.exec(data.text)[1];
-                    setpoint['dimming'] = dimRegex.exec(data.text)[1];
+                    setpoint['brightness'] = dimRegex.exec(data.text)[1];
                 }, err => {
                     throw err;
                 });
             });
-            let split = file.replace('.pdf', '').toLowerCase().split('-');
+            const split = file.replace('.pdf', '').toLowerCase().split('-');
             setpoint['time'] = split[0];
             setpoint['area'] = split[1].replace(/\s|_+/g, '-');
             setpointsArray.push(setpoint);
@@ -77,8 +93,8 @@ function sendSetpoints(setpointsArray, lastSendTime) {
         console.log('The given setpoints array is empty, skipping send setpoints...');
         return;
     }
-    let now = new Date();
-    let timeStr = ('0' + now.getHours()).slice(-2) + '.' + ('0' + now.getMinutes()).slice(-2);
+    const now = new Date();
+    const timeStr = ('0' + now.getHours()).slice(-2) + '.' + ('0' + now.getMinutes()).slice(-2);
     setpointsArray.forEach(setpoint => {
         if (setpoint.time == timeStr && setpoint.time != lastSendTime[setpoint.area]) {
             aedes.publish({
@@ -87,8 +103,8 @@ function sendSetpoints(setpointsArray, lastSendTime) {
                 retain: true
             });
             aedes.publish({
-                topic: 'set/dimming/' + setpoint.area,
-                payload: setpoint.dimming,
+                topic: 'set/lamp/' + setpoint.area + '/brightness',
+                payload: setpoint.brightness,
                 retain: true
             });
             lastSendTime[setpoint.area] = setpoint.time;
@@ -135,7 +151,7 @@ function extractImages(pdfDir, imgDir) {
 const fs = require('fs');
 const path = require('path');
 const pdf = require('pdf-parse');
-readSetpoints(setpointsDir, setpoints, illuminanceRegex, dimmingRegex);
+readSetpoints(setpointsDir, setpoints, illuminanceRegex, brightnessRegex);
 
 // Extract -map and -legend jpg images from setpoint pdfs
 extractImages(setpointsDir, imagesDir);
@@ -143,7 +159,7 @@ extractImages(setpointsDir, imagesDir);
 // Initialize an MQTT server
 const aedes = require('aedes')({id: 'mqtt-server'});
 const mqttServer = require('net').createServer(aedes.handle);
-mqttServer.listen(mqttPort, function(){
+mqttServer.listen(mqttPort, function() {
     console.log('server started and listening on port', mqttPort);
 });
 
@@ -169,7 +185,7 @@ app.post('/upload', async (req, res) => {
             }
             res.send('Files uploaded successfully!');
             // Reread all setpoint values
-            readSetpoints(setpointsDir, setpoints, illuminanceRegex, dimmingRegex);
+            readSetpoints(setpointsDir, setpoints, illuminanceRegex, brightnessRegex);
             // Extract all illuminance distribution images from the setpoint pdfs
             extractImages(setpointsDir, imagesDir);
         } catch (error) {
@@ -185,7 +201,7 @@ app.post('/upload', async (req, res) => {
             else {
                 res.send('File uploaded successfully!');
                 // Reread all setpoint values
-                readSetpoints(setpointsDir, setpoints, illuminanceRegex, dimmingRegex);
+                readSetpoints(setpointsDir, setpoints, illuminanceRegex, brightnessRegex);
                 // Extract all illuminance distribution images from the setpoint pdfs
                 extractImages(setpointsDir, imagesDir);
             }    
@@ -204,25 +220,30 @@ app.get('/get-images', (req, res) => {
         res.send(JSON.stringify(pathArray));
     });
 });
+app.get('/get-setpoints', (req, res) => {
+    res.send(JSON.stringify(setpoints));
+});
 const httpServer = require('http').createServer(app);
 ws.createServer({ server: httpServer }, aedes.handle);
-httpServer.listen(httpPort, function(){
+httpServer.listen(httpPort, function() {
     console.log('websocket server listening on port', httpPort);
 });
 
-// // Initialize MongoDB client
-// const mongoClient = new require('mongodb').MongoClient(dbURL, {
-//     useUnifiedTopology: true,
-//     poolSize: 20,
-// });
-// // Create a new connection to MongoDB server
-// if (!mongoClient.isConnected()) {
-//     mongoClient.connect((err, client) => {
-//         if (err) throw err;
-//         console.log('Connected correctly to', dbURL);
-//         db = client.db(dbName);
-//     });
-// }
+// Initialize MongoDB client
+const mongoClient = new require('mongodb').MongoClient(dbURL, {
+    useUnifiedTopology: true,
+    poolSize: 20,
+});
+// Importing MongoDB ObjectID module
+const ObjectID = require('mongodb').ObjectID;
+// Create a new connection to MongoDB server
+if (!mongoClient.isConnected()) {
+    mongoClient.connect((err, client) => {
+        if (err) throw err;
+        console.log('Connected correctly to', dbURL);
+        db = client.db(dbName);
+    });
+}
 
 // Fired when a message is published
 aedes.on('publish', (packet, client) => {
@@ -231,12 +252,8 @@ aedes.on('publish', (packet, client) => {
     let split = packet.topic.split('/');
     let payloadStr = packet.payload.toString();
     switch (split[0] + '/' + split[1]) {
-        case 'status/sensor':
-            data.push({tempat: split[2], iluminansi: parseFloat(payloadStr)});
-            break;
-        case 'status/waktu':
-            simpanData(payloadStr);
-            break;
+        case 'status/lamp': saveLampData(split[2], payloadStr); break;
+        case 'status/illuminance': saveIlluminanceData(split[2], payloadStr); break;
     }
 });
 

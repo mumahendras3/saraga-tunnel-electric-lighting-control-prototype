@@ -6,6 +6,20 @@ const dbUser = 'rikhen';
 const dbPass = 'success';
 const dbURL = 'mongodb://' + dbUser + ':' + dbPass + '@' + mongodbHost + ':' + mongodbPort + '/' + dbName;
 
+// Initialize MongoDB client
+const mongoClient = new require('mongodb').MongoClient(dbURL, {
+    useUnifiedTopology: true,
+    poolSize: 20,
+});
+// Create a new connection to MongoDB server
+if (!mongoClient.isConnected()) {
+    mongoClient.connect((err, client) => {
+        if (err) throw err;
+        console.log('Connected correctly to', dbURL);
+        db = client.db(dbName);
+    });
+}
+
 // Some more variable definitions
 const mqttPort = 1883; // MQTT server port
 const httpPort = 3000; // HTTP web server port
@@ -30,7 +44,7 @@ function saveLampData(area, payload) {
                 red: parseInt(split[0]),
                 green: parseInt(split[1]),
                 blue: parseInt(split[2]),
-                brightness: parseInt(split[3])
+                brightness: Math.round(parseFloat(split[3]))
             }
         }
     }
@@ -41,13 +55,14 @@ function saveLampData(area, payload) {
     });
 }
 function saveIlluminanceData(area, payload) {
-    // payload format sent from microcontroller is 'lux|time' (string)
+    // payload format sent from microcontroller is 'lux|lux_target|ISO_timestamp' (string)
     const split = payload.split('|');
     // Defining the filter and update object to be passed to MongoDB server
-    const filter = {time: split[1], area: area};
+    const filter = {time: split[2], area: area};
     const update = {
         $set: {
-            illuminance: parseFloat(split[0])
+            illuminance: parseFloat(split[0]),
+            illuminance_target: parseFloat(split[1])
         }
     }
     // Send the data to MongoDB
@@ -93,8 +108,9 @@ function sendSetpoints(setpointsArray, lastSendTime) {
         console.log('The given setpoints array is empty, skipping send setpoints...');
         return;
     }
-    const now = new Date();
-    const timeStr = ('0' + now.getHours()).slice(-2) + '.' + ('0' + now.getMinutes()).slice(-2);
+    const now = Date.now();
+    const later = new Date(now + 30000);
+    const timeStr = ('0' + later.getHours()).slice(-2) + '.' + ('0' + later.getMinutes()).slice(-2);
     setpointsArray.forEach(setpoint => {
         if (setpoint.time == timeStr && setpoint.time != lastSendTime[setpoint.area]) {
             aedes.publish({
@@ -112,6 +128,11 @@ function sendSetpoints(setpointsArray, lastSendTime) {
     });
 }
 function extractImages(pdfDir, imgDir) {
+    fs.readdirSync(imagesDir).forEach(file => {
+        if (file == 'building_layout.jpeg') return;
+        const imgPath = path.posix.join(imagesDir, file);
+        fs.unlinkSync(imgPath);
+    });
     fs.readdir(pdfDir, (err, files) => {
         files.forEach(file => {
             const binPath = path.posix.join(binDir, 'pdfimages.exe');
@@ -145,6 +166,19 @@ function extractImages(pdfDir, imgDir) {
             });
         });
     });
+}
+function syncTime(timeStr) {
+    const now = new Date();
+    const time = now.getTime() - now.getTimezoneOffset() * 60000;
+    const microcontrollerTime = parseInt(timeStr) * 1000;
+    const delta = Math.abs(time - microcontrollerTime);
+    if (delta > 5000) {
+        aedes.publish({
+            topic: 'set/time',
+            payload: Math.round(time/1000).toString(),
+            retain: false
+        });
+    }
 }
 
 // Initialize the setpoints array
@@ -214,7 +248,7 @@ app.get('/get-images', (req, res) => {
         if (err) return res.status(500).send('Oops! Something went wrong.\n\n' + err);
         let pathArray = [];
         for (let i = 0; i < files.length; i++) {
-            if (files[i] == 'place_holder.png') continue;
+            if (files[i] == 'building_layout.jpeg') continue;
             pathArray.push(path.posix.join(imagesDir.split('/')[1], files[i]));
         }
         res.send(JSON.stringify(pathArray));
@@ -229,31 +263,16 @@ httpServer.listen(httpPort, function() {
     console.log('websocket server listening on port', httpPort);
 });
 
-// Initialize MongoDB client
-const mongoClient = new require('mongodb').MongoClient(dbURL, {
-    useUnifiedTopology: true,
-    poolSize: 20,
-});
-// Importing MongoDB ObjectID module
-const ObjectID = require('mongodb').ObjectID;
-// Create a new connection to MongoDB server
-if (!mongoClient.isConnected()) {
-    mongoClient.connect((err, client) => {
-        if (err) throw err;
-        console.log('Connected correctly to', dbURL);
-        db = client.db(dbName);
-    });
-}
-
 // Fired when a message is published
 aedes.on('publish', (packet, client) => {
     // for debugging
-    console.log(packet.topic, packet.payload.toString());
-    let split = packet.topic.split('/');
-    let payloadStr = packet.payload.toString();
+    const split = packet.topic.split('/');
+    const payloadStr = packet.payload.toString();
+    console.log(packet.topic, payloadStr);
     switch (split[0] + '/' + split[1]) {
         case 'status/lamp': saveLampData(split[2], payloadStr); break;
         case 'status/illuminance': saveIlluminanceData(split[2], payloadStr); break;
+        case 'status/time': syncTime(payloadStr);
     }
 });
 

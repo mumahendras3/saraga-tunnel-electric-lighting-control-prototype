@@ -7,6 +7,7 @@ void setup_wifi(const char* ssid, const char* password) {
     Serial.print("Connecting to ");
     Serial.println(ssid);
 
+    WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
 
     while (WiFi.status() != WL_CONNECTED) {

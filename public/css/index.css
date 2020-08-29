@@ -2,7 +2,7 @@
     display: block;
     margin-left: auto;
     margin-right: auto;
-    width: 50%;
+    width: 95%;
 }
 
 body {
@@ -66,22 +66,16 @@ form.section {
     width: 40rem;
 }
 
-/* small size */
-/* @media only screen and (min-width: 370px) {
-    .kotak-sensor {
-        width: 90%;
-    }
-    .chart {
-        width: 100%;
-    }
-} */
-
 /* medium size */
-/* @media only screen and (min-width: 550px) {
-    .kotak-sensor {
-        width: unset;
+@media only screen and (min-width: 550px) {
+    .image {
+        width: 80%;
     }
-    .chart {
-        width: 30rem;
+}
+
+/* large size */
+@media only screen and (min-width: 1000px) {
+    .image {
+        width: 50%;
     }
-} */
+}

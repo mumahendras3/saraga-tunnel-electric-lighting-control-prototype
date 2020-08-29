@@ -27,6 +27,13 @@ document.querySelectorAll('.chart').forEach(function(element){
 });
 
 // Function definitions
+function componentToHex(c) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? '0' + hex : hex;
+}  
+function rgbToHex(r, g, b) {
+    return '#' + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
 function hexToRgb(hex) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
@@ -42,10 +49,10 @@ function invertRgb(colorObj) {
         b: 255 - colorObj.b
     } : null;
 }
-function colorPreview(event) {
-    lamps[event.target.id].textContent = '';
-    lamps[event.target.id].style.backgroundColor = event.target.value;
-}
+// function colorPreview(event) {
+//     lamps[event.target.id].textContent = '';
+//     lamps[event.target.id].style.backgroundColor = event.target.value;
+// }
 function colorSet(event) {
     const color = hexToRgb(event.target.value);
     const r = String(color.r);
@@ -54,34 +61,41 @@ function colorSet(event) {
     client.publish('set/lamp/' + event.target.id + '/red' , r, {retain: true});
     client.publish('set/lamp/' + event.target.id + '/green' , g, {retain: true});
     client.publish('set/lamp/' + event.target.id + '/blue' , b, {retain: true});
-    lamps[event.target.id].textContent = '...';
-    lamps[event.target.id].style.backgroundColor = event.target.value;
-    // Invert the text color so it's readable
-    const inverted = invertRgb(color);
-    const invertedStr = 'rgb(' + inverted.r + ', ' + inverted.g + ', ' + inverted.b + ')';
-    lamps[event.target.id].style.color = invertedStr;
+    // lamps[event.target.id].textContent = '...';
+    // lamps[event.target.id].style.backgroundColor = event.target.value;
+    // // Invert the text color so it's readable
+    // const inverted = invertRgb(color);
+    // const invertedStr = 'rgb(' + inverted.r + ', ' + inverted.g + ', ' + inverted.b + ')';
+    // lamps[event.target.id].style.color = invertedStr;
 }
 function updateLamp(area, payload) {
     // payload format sent from microcontroller is 'red|green|blue|brightness|ISO_timestamp' (string)
     const split = payload.split('|');
-    lamps[area].textContent = split[3] + '%';
-    lamps[area].style.backgroundColor = 'rgb(' + split[0] + ', ' + split[1] + ', ' + split[2] + ')';
+    const red = split[0];
+    const green = split[1];
+    const blue = split[2];
+    const brightness = parseFloat(split[3]);
+    lamps[area].textContent = Math.round(brightness).toString() + '%';
+    lamps[area].style.backgroundColor = 'rgb(' + red + ', ' + green + ', ' + blue + ')';
     // Invert the text color so it's readable
-    const inverted = invertRgb({r: split[0], g: split[1], b: split[2]});
+    const inverted = invertRgb({r: red, g: green, b: blue});
     const invertedStr = 'rgb(' + inverted.r + ', ' + inverted.g + ', ' + inverted.b + ')';
     lamps[area].style.color = invertedStr;
-};
+    // Also update the color selector value
+    const colorPicker = document.querySelector('#' + area + '[type="color"]');
+    colorPicker.value = rgbToHex(parseInt(red), parseInt(green), parseInt(blue));
+}
 function updateIlluminance(area, payload) {
-    // payload format sent from microcontroller is 'lux|time' (string)
+    // payload format sent from microcontroller is 'lux|lux_target|ISO_timestamp' (string)
     const split = payload.split('|');
-    const time = new Date(split[1]);
+    const time = new Date(split[2]);
     const timeStr = ('0' + time.getHours()).slice(-2) + '.' + ('0' + time.getMinutes()).slice(-2);
     chartsData[area].push({x: timeStr, y: parseFloat(split[0])});
     if (chartsData[area].length > xAxisNum) chartsData[area].shift();
     ApexCharts.exec(area, 'updateSeries', [{data: chartsData[area]}]);
     // Show the new iluminance value in the web page
     illuminances[area].textContent = split[0] + ' lx';
-};
+}
 function upload(form) {
     // Create a new XMLHttpRequest (XHR) DOM object instance
     const XHR = new XMLHttpRequest();
@@ -92,7 +106,7 @@ function upload(form) {
         alert(event.target.responseText);
         // Give some time for the server to extract the simulation images from
         // the uploaded pdfs and then refresh the displayed simulation images
-        setTimeout(addImgNode, 2000, 'section-simulation');
+        setTimeout(addImgNode, 10000, 'section-simulation');
     });
     // Define what happens in case of error
     XHR.addEventListener('error', event => {
@@ -108,14 +122,17 @@ function addImgNode(id) {
     .then(res => res.json())
     .then(async res => {
         if (res == []) return;
+        if (res == ['building_layout.jpeg']) return;
         let parentNode = document.getElementById(id);
         // Empty the parent node first
         parentNode.textContent = '';
         const setpoints = await getSetpoints();
         if (setpoints == []) return;
-        res.forEach((path, index) => {
+        res.forEach((imgPath, index) => {
+            // Skip unconverted image files (just in case)
+            if (/-0[0-9]+\./.test(imgPath)) return;
             // Extract the time and area information first
-            const baseNameNoExt = path.slice(0, -6).split('/')[1];
+            const baseNameNoExt = imgPath.slice(0, -6).split('/')[1];
             const split = baseNameNoExt.split('-');
             const time = split[0];
             const areaName = split[1].replace(/_+/g, ' '); // Just in case there are underscores
@@ -125,7 +142,7 @@ function addImgNode(id) {
             // Create the image node
             let imgElement = document.createElement('img');
             // Set the img source
-            imgElement.setAttribute('src', path);
+            imgElement.setAttribute('src', imgPath);
             // Setting the appropriate alt text
             let altStr = 'Simulasi distribusi iluminansi di area ';
             altStr += title;
@@ -151,7 +168,7 @@ async function getSetpoints() {
 }
 // Attaching functions to some events
 document.querySelectorAll('[type=color]').forEach(function(element) {
-    element.addEventListener('input', colorPreview, false);
+    // element.addEventListener('input', colorPreview, false);
     element.addEventListener('change', colorSet, false);
 });
 uploadForm.addEventListener('submit', event => {

@@ -41,6 +41,7 @@ void area::sensors_init() {
 }
 // Method to start measurement for all sensors in the area
 void area::sensors_start(bool forcePreShot) {
+    calculated = false;
     for (uint8_t n = 0; n < num_sensors; n++) {
         tca_select(TCA_ADDR_DEF + addr[n][0], addr[n][1]);
         sensor[n].adjustSettings(90, forcePreShot);
@@ -65,22 +66,40 @@ void area::calc_lux() {
       sum += sensor[n].getLux();
     }
     avg_lux = sum / num_sensors;
+    calculated = true;
 }
-// Method to apply the brightness and RGB value of this LED group to the LED strip
-void area::leds_apply(Adafruit_NeoPixel * strip) {
-    uint8_t r = red * brightness / 100;
-    uint8_t g = green * brightness / 100;
-    uint8_t b = blue * brightness / 100;
-    uint32_t color = strip->Color(r, g, b);
-    strip->fill(color, led_index, num_leds);
+// Method to check the average lux calculation status in the area
+bool area::lux_calculated() {
+    return calculated;
 }
-// Method to adapt the brightness value so that the average illuminance target can be achieved
-void area::brightness_adapt() {
-    brightness =
-    (brightness*(LUM_RED*red + LUM_GREEN*green + LUM_BLUE*blue)/100 + (avg_lux_target - avg_lux)*255000*distance*distance/num_sensors)*100 /
-    (LUM_RED*new_red + LUM_GREEN*new_green + LUM_BLUE*new_blue);
-    // Also save the new RGB value as the current one
+// Method to update the brightness and RGB value of the LED group
+void area::leds_update() {
+    if (automatic) {
+        new_brightness =
+        (brightness*(LUM_RED*red + LUM_GREEN*green + LUM_BLUE*blue) + (avg_lux_target - avg_lux)*255000*distance*distance/num_leds) /
+        (LUM_RED*new_red + LUM_GREEN*new_green + LUM_BLUE*new_blue);
+        // Some sanity checks
+        if (new_brightness > 1) new_brightness = 1;
+        else if (new_brightness < 0) new_brightness = 0;
+    }
+    else {
+        // Reset the color back to white in manual mode (i.e. the new_brightness is set by the server)
+        new_red = 255;
+        new_green = 255;
+        new_blue = 255;
+        // Reset the mode back to automatic
+        automatic = true;
+    }
+    brightness = new_brightness;
     red = new_red;
     green = new_green;
     blue = new_blue;
+}
+// Method to apply the brightness and RGB value of this LED group to the LED strip
+void area::leds_apply(Adafruit_NeoPixel *strip) {
+    uint8_t r = red * brightness;
+    uint8_t g = green * brightness;
+    uint8_t b = blue * brightness;
+    uint32_t color = strip->Color(r, g, b);
+    strip->fill(color, led_index, num_leds);
 }

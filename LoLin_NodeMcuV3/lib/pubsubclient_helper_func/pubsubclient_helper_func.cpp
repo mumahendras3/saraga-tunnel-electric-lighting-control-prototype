@@ -40,3 +40,21 @@ void reconnect(PubSubClient * client) {
         }
     }
 }
+
+double parse_float(byte* payload, unsigned int length) {
+    char number[length + 1];
+    for (uint8_t i = 0; i < length; i++) {
+        number[i] = (char)payload[i];
+    }
+    number[length] = '\0';
+    return atof(number);
+}
+
+int parse_int(byte* payload, unsigned int length) {
+    char number[length + 1];
+    for (uint8_t i = 0; i < length; i++) {
+        number[i] = (char)payload[i];
+    }
+    number[length] = '\0';
+    return atoi(number);
+}

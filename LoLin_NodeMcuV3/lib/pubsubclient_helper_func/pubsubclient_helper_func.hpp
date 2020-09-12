@@ -6,5 +6,7 @@
 
 void setup_wifi(const char* ssid, const char* password);
 void reconnect(PubSubClient * client);
+double parse_float(byte* payload, unsigned int length);
+int parse_int(byte* payload, unsigned int length);
 
 #endif

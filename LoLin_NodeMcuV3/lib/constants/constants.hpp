@@ -21,15 +21,15 @@
 // Total number of light sensors used at area 'Pameran Poster 2'
 #define NUM_BH1750_PAMERAN_POSTER_2 1
 // Total number of light sensors used at area 'Panggung Serbaguna'
-#define NUM_BH1750_PANGGUNG_SERBAGUNA 2
+#define NUM_BH1750_PANGGUNG_SERBAGUNA 1
 // Total number of light sensors used at area 'Pejalan Kaki 1'
-#define NUM_BH1750_PEJALAN_KAKI_1 2
+#define NUM_BH1750_PEJALAN_KAKI_1 1
 // Total number of light sensors used at area 'Pejalan Kaki 2'
-#define NUM_BH1750_PEJALAN_KAKI_2 6
+#define NUM_BH1750_PEJALAN_KAKI_2 3
 // Total number of light sensors used at area 'Pejalan Kaki 3'
-#define NUM_BH1750_PEJALAN_KAKI_3 2
+#define NUM_BH1750_PEJALAN_KAKI_3 1
 // Total number of light sensors used at area 'Pejalan Kaki 4'
-#define NUM_BH1750_PEJALAN_KAKI_4 2
+#define NUM_BH1750_PEJALAN_KAKI_4 1
 
 // Luminous intensity of the red, green, and blue LED for each pixel in the LED strip
 // in mcd (milicandela) (taken from datasheet)
@@ -38,70 +38,70 @@
 #define LUM_BLUE 215
 
 // Index of first LED in area 'Meja dan Kursi 1'
-#define INDEX_LED_MEJA_DAN_KURSI_1 10
+#define INDEX_LED_MEJA_DAN_KURSI_1 29
 // Total number of LEDs used at area 'Meja dan Kursi 1'
 #define NUM_LED_MEJA_DAN_KURSI_1 6
 // Distance (in meter) from LEDs to measuring point in area 'Meja dan Kursi 1'
-#define DIST_LED_MEJA_DAN_KURSI_1 0.16
+#define DIST_LED_MEJA_DAN_KURSI_1 0.1325
 
 // Index of first LED in area 'Meja dan Kursi 2'
-#define INDEX_LED_MEJA_DAN_KURSI_2 16
+#define INDEX_LED_MEJA_DAN_KURSI_2 24
 // Total number of LEDs used at area 'Meja dan Kursi 2'
 #define NUM_LED_MEJA_DAN_KURSI_2 5
 // Distance (in meter) from LEDs to measuring point in area 'Meja dan Kursi 2'
-#define DIST_LED_MEJA_DAN_KURSI_2 0.16
+#define DIST_LED_MEJA_DAN_KURSI_2 0.1325
 
 // Index of first LED in area 'Meja dan Kursi 3'
-#define INDEX_LED_MEJA_DAN_KURSI_3 21
+#define INDEX_LED_MEJA_DAN_KURSI_3 18
 // Total number of LEDs used at area 'Meja dan Kursi 3'
 #define NUM_LED_MEJA_DAN_KURSI_3 6
 // Distance (in meter) from LEDs to measuring point in area 'Meja dan Kursi 3'
-#define DIST_LED_MEJA_DAN_KURSI_3 0.16
+#define DIST_LED_MEJA_DAN_KURSI_3 0.1325
 
 // Index of first LED in area 'Pameran Poster 1'
-#define INDEX_LED_PAMERAN_POSTER_1 34
+#define INDEX_LED_PAMERAN_POSTER_1 35
 // Total number of LEDs used at area 'Pameran Poster 1'
-#define NUM_LED_PAMERAN_POSTER_1 3
+#define NUM_LED_PAMERAN_POSTER_1 4
 // Distance (in meter) from LEDs to measuring point in area 'Pameran Poster 1'
-#define DIST_LED_PAMERAN_POSTER_1 0.22
+#define DIST_LED_PAMERAN_POSTER_1 0.185
 
 // Index of first LED in area 'Pameran Poster 2'
-#define INDEX_LED_PAMERAN_POSTER_2 37
+#define INDEX_LED_PAMERAN_POSTER_2 39
 // Total number of LEDs used at area 'Pameran Poster 2'
 #define NUM_LED_PAMERAN_POSTER_2 4
 // Distance (in meter) from LEDs to measuring point in area 'Pameran Poster 2'
-#define DIST_LED_PAMERAN_POSTER_2 0.22
+#define DIST_LED_PAMERAN_POSTER_2 0.185
 
 // Index of first LED in area 'Panggung Serbaguna'
-#define INDEX_LED_PANGGUNG_SERBAGUNA 8
+#define INDEX_LED_PANGGUNG_SERBAGUNA 9
 // Total number of LEDs used at area 'Panggung Serbaguna'
 #define NUM_LED_PANGGUNG_SERBAGUNA 2
 // Distance (in meter) from LEDs to measuring point in area 'Panggung Serbaguna'
-#define DIST_LED_PANGGUNG_SERBAGUNA 0.15
+#define DIST_LED_PANGGUNG_SERBAGUNA 0.19
 
 // Index of first LED in area 'Pejalan Kaki 1'
 #define INDEX_LED_PEJALAN_KAKI_1 0
 // Total number of LEDs used at area 'Pejalan Kaki 1'
-#define NUM_LED_PEJALAN_KAKI_1 8
+#define NUM_LED_PEJALAN_KAKI_1 9
 // Distance (in meter) from LEDs to measuring point in area 'Pejalan Kaki 1'
 #define DIST_LED_PEJALAN_KAKI_1 0.22
 
 // Index of first LED in area 'Pejalan Kaki 2'
-#define INDEX_LED_PEJALAN_KAKI_2 27
+#define INDEX_LED_PEJALAN_KAKI_2 11
 // Total number of LEDs used at area 'Pejalan Kaki 2'
 #define NUM_LED_PEJALAN_KAKI_2 7
 // Distance (in meter) from LEDs to measuring point in area 'Pejalan Kaki 2'
 #define DIST_LED_PEJALAN_KAKI_2 0.22
 
 // Index of first LED in area 'Pejalan Kaki 3'
-#define INDEX_LED_PEJALAN_KAKI_3 41
+#define INDEX_LED_PEJALAN_KAKI_3 43
 // Total number of LEDs used at area 'Pejalan Kaki 3'
 #define NUM_LED_PEJALAN_KAKI_3 3
 // Distance (in meter) from LEDs to measuring point in area 'Pejalan Kaki 3'
 #define DIST_LED_PEJALAN_KAKI_3 0.22
 
 // Index of first LED in area 'Pejalan Kaki 4'
-#define INDEX_LED_PEJALAN_KAKI_4 44
+#define INDEX_LED_PEJALAN_KAKI_4 46
 // Total number of LEDs used at area 'Pejalan Kaki 4'
 #define NUM_LED_PEJALAN_KAKI_4 3
 // Distance (in meter) from LEDs to measuring point in area 'Pejalan Kaki 4'

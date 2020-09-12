@@ -28,6 +28,10 @@ class area {
     float avg_lux = -1;
     // Average illuminance target for the area
     float avg_lux_target = 43;
+    // Smallest measured illuminance of the area
+    float lux_min;
+    // The overall uniformity of the area
+    float uniformity;
     // The current RGB value of all LEDs in the area
     uint8_t red = 255, green = 255, blue = 255;
     // The new RGB value of all LEDs in the area (received from the server)
@@ -50,6 +54,8 @@ class area {
     bool sensors_finished();
     // Method to calculate the average illuminance of all sensors in the area
     void calc_lux();
+    // Method to calculate the overall uniformity of the area
+    void calc_uniformity();
     // Method to check the average lux calculation status in the area
     bool lux_calculated();
     // Method to update the brightness and RGB value of the LED group

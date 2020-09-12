@@ -8,6 +8,7 @@ const client = mqtt.connect('ws://' + serverAddress + ':' + serverPort);
 
 // Subscribe to some topics
 client.subscribe('status/#');
+client.subscribe('set/illuminance/+');
 
 // Get elements
 let uploadForm = document.querySelector('form.section');
@@ -85,14 +86,36 @@ function updateLamp(area, payload) {
     const colorPicker = document.querySelector('#' + area + '[type="color"]');
     colorPicker.value = rgbToHex(parseInt(red), parseInt(green), parseInt(blue));
 }
-function updateIlluminance(area, payload) {
-    // payload format sent from microcontroller is 'lux|lux_target|ISO_timestamp' (string)
+async function updateIlluminance(area, payload) {
+    // payload format sent from microcontroller is 'lux|lux_target|lux_min|uniformity|ISO_timestamp' (string)
     const split = payload.split('|');
-    const time = new Date(split[2]);
+    const time = new Date(split[split.length-1]);
     const timeStr = ('0' + time.getHours()).slice(-2) + '.' + ('0' + time.getMinutes()).slice(-2);
     chartsData[area].push({x: timeStr, y: parseFloat(split[0])});
     if (chartsData[area].length > xAxisNum) chartsData[area].shift();
-    ApexCharts.exec(area, 'updateSeries', [{data: chartsData[area]}]);
+    // Using 'await' to update the chart data first before updating annotation
+    await ApexCharts.exec(area, 'updateSeries', [{data: chartsData[area]}]);
+    // Update the illuminance target annotation
+    ApexCharts.exec(area, 'addYaxisAnnotation', {
+        y: parseFloat(split[1]),
+        strokeDashArray: 20,
+        borderColor: '#e03c31',
+        fillColor: '#e03c31',
+        label: {
+            text: 'Ē = ' + split[1] + ' lx',
+            textAnchor: 'end',
+            borderColor: '#e03c31',
+            style: {
+                background: '#e03c31',
+                color: '#fff',
+                fontWeight: 700,
+                padding: {
+                    left: 4,
+                    right: 4
+                }
+            }
+        }
+    }, false);
     // Show the new iluminance value in the web page
     illuminances[area].textContent = split[0] + ' lx';
 }
@@ -136,9 +159,16 @@ function addImgNode(id) {
             const split = baseNameNoExt.split('-');
             const time = split[0];
             const areaName = split[1].replace(/_+/g, ' '); // Just in case there are underscores
-            let title = areaName + ' (' + time + ', Ē = ';
-            if (index % 2 == 0) title += setpoints[index/2].illuminance + ' lx)';
-            else title += setpoints[(index-1)/2].illuminance + ' lx)';
+            // let title = areaName + ' (' + time + ', Ē = ';
+            let title = areaName + ' (' + time + ', Brightness = ';
+            if (index % 2 == 0) {
+                title += setpoints[index/2].brightness + '%, Ē = ';
+                title += setpoints[index/2].illuminance + ' lx)';
+            }
+            else {
+                title += setpoints[(index-1)/2].brightness + '%, Ē = ';
+                title += setpoints[(index-1)/2].illuminance + ' lx)';
+            }
             // Create the image node
             let imgElement = document.createElement('img');
             // Set the img source

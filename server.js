@@ -55,14 +55,16 @@ function saveLampData(area, payload) {
     });
 }
 function saveIlluminanceData(area, payload) {
-    // payload format sent from microcontroller is 'lux|lux_target|ISO_timestamp' (string)
+    // payload format sent from microcontroller is 'lux|lux_target|lux_min|uniformity|ISO_timestamp' (string)
     const split = payload.split('|');
     // Defining the filter and update object to be passed to MongoDB server
-    const filter = {time: split[2], area: area};
+    const filter = {time: split[split.length-1], area: area};
     const update = {
         $set: {
             illuminance: parseFloat(split[0]),
-            illuminance_target: parseFloat(split[1])
+            illuminance_target: parseFloat(split[1]),
+            illuminance_min: parseFloat(split[2]),
+            uniformity: parseFloat(split[3])
         }
     }
     // Send the data to MongoDB
@@ -108,11 +110,36 @@ function sendSetpoints(setpointsArray, lastSendTime) {
         console.log('The given setpoints array is empty, skipping send setpoints...');
         return;
     }
+    // If no setpoints have been sent before, looking for the latest setpoints before current time
+    if (Object.keys(lastSendTime).length == 0) {
+        if (setpointsArray.length == 0) return;
+        const now = new Date();
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+        for (let i = setpointsArray.length - 1; i >= 0; i--) {
+            const setpoint = setpointsArray[i];
+            const split = setpoint.time.split('.');
+            const minutes = parseInt(split[0]) * 60 + parseInt(split[1]);
+            if (minutes <= nowMinutes && lastSendTime[setpoint.area] == undefined) {
+                aedes.publish({
+                    topic: 'set/illuminance/' + setpoint.area,
+                    payload: setpoint.illuminance,
+                    retain: true
+                });
+                aedes.publish({
+                    topic: 'set/lamp/' + setpoint.area + '/brightness',
+                    payload: setpoint.brightness,
+                    retain: true
+                });
+                lastSendTime[setpoint.area] = setpoint.time;
+            }
+        }
+        return;
+    }
     const now = Date.now();
     const later = new Date(now + 30000);
     const timeStr = ('0' + later.getHours()).slice(-2) + '.' + ('0' + later.getMinutes()).slice(-2);
     setpointsArray.forEach(setpoint => {
-        if (setpoint.time == timeStr && setpoint.time != lastSendTime[setpoint.area]) {
+        if (setpoint.time == timeStr && lastSendTime[setpoint.area] != timeStr) {
             aedes.publish({
                 topic: 'set/illuminance/' + setpoint.area,
                 payload: setpoint.illuminance,
@@ -123,7 +150,7 @@ function sendSetpoints(setpointsArray, lastSendTime) {
                 payload: setpoint.brightness,
                 retain: true
             });
-            lastSendTime[setpoint.area] = setpoint.time;
+            lastSendTime[setpoint.area] = timeStr;
         }
     });
 }
@@ -267,7 +294,7 @@ httpServer.listen(httpPort, function() {
 aedes.on('publish', (packet, client) => {
     // for debugging
     const split = packet.topic.split('/');
-    const payloadStr = packet.payload.toString();
+    const payloadStr = String(packet.payload);
     console.log(packet.topic, payloadStr);
     switch (split[0] + '/' + split[1]) {
         case 'status/lamp': saveLampData(split[2], payloadStr); break;

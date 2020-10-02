@@ -160,7 +160,7 @@ function addImgNode(id) {
             const time = split[0];
             const areaName = split[1].replace(/_+/g, ' '); // Just in case there are underscores
             // let title = areaName + ' (' + time + ', Ē = ';
-            let title = areaName + ' (' + time + ', Brightness = ';
+            let title = areaName + ' (' + time + ', Tingkat Intensitas Cahaya Lampu = ';
             if (index % 2 == 0) {
                 title += setpoints[index/2].brightness + '%, Ē = ';
                 title += setpoints[index/2].illuminance + ' lx)';

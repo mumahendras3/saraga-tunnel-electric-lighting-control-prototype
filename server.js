@@ -157,6 +157,7 @@ function sendSetpoints(setpointsArray, lastSendTime) {
 function extractImages(pdfDir, imgDir) {
     fs.readdirSync(imagesDir).forEach(file => {
         if (file == 'building_layout.jpeg') return;
+        if (file == 'logo_cita.png') return;
         const imgPath = path.posix.join(imagesDir, file);
         fs.unlinkSync(imgPath);
     });

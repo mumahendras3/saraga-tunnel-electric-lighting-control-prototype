@@ -33,44 +33,33 @@ let setpoints = []; // An array to hold all the setpoints data at runtime
 let sent = {}; // An object that contains the last time setpoints have been sent for each area/location
 
 // Function definitions
-function saveLampData(area, payload) {
-    // payload format sent from microcontroller is 'red|green|blue|brightness|ISO_timestamp' (string)
+function saveData(area, payload) {
+    // payload format sent from microcontroller is 'time|red|green|blue|brightness|avg_lux|avg_lux_target' (string)
     const split = payload.split('|');
-    // Defining the filter and update object to be passed to MongoDB server
-    const filter = {time: split[4], area: area};
-    const update = {
-        $set: {
-            lamp: {
-                red: parseInt(split[0]),
-                green: parseInt(split[1]),
-                blue: parseInt(split[2]),
-                brightness: Math.round(parseFloat(split[3]))
-            }
-        }
-    }
+    const time = split[0];
+    const red = split[1];
+    const green = split[2];
+    const blue = split[3];
+    const brightness = split[4];
+    const avg_lux = split[5];
+    const avg_lux_target = split[6];
+    // Craft the document to send to MongoDB first
+    const doc = {
+        'area': area,
+        'time': time,
+        'lamp': {
+            'red': red,
+            'green': green,
+            'blue': blue,
+            'brightness': brightness
+        },
+        'illuminance': avg_lux,
+        'illuminance_target': avg_lux_target
+    };
     // Send the data to MongoDB
-    db.collection('data').updateOne(filter, update, {upsert: true}, (err, res) => {
+    db.collection('data').insertOne(doc, {forceServerObjectId: true}, (err, res) => {
         if (err) throw err;
-        console.log('Successfully sent the following data to MongoDB:', update.$set); // for debugging
-    });
-}
-function saveIlluminanceData(area, payload) {
-    // payload format sent from microcontroller is 'lux|lux_target|lux_min|uniformity|ISO_timestamp' (string)
-    const split = payload.split('|');
-    // Defining the filter and update object to be passed to MongoDB server
-    const filter = {time: split[split.length-1], area: area};
-    const update = {
-        $set: {
-            illuminance: parseFloat(split[0]),
-            illuminance_target: parseFloat(split[1]),
-            illuminance_min: parseFloat(split[2]),
-            uniformity: parseFloat(split[3])
-        }
-    }
-    // Send the data to MongoDB
-    db.collection('data').updateOne(filter, update, {upsert: true}, (err, res) => {
-        if (err) throw err;
-        console.log('Successfully sent the following data to MongoDB:', update.$set); // for debugging
+        console.log('Successfully sent the following data to MongoDB:', doc); // for debugging
     });
 }
 function readSetpoints(setpointsDir, setpointsArray, illumRegex, dimRegex) {
@@ -297,11 +286,8 @@ aedes.on('publish', (packet, client) => {
     const split = packet.topic.split('/');
     const payloadStr = String(packet.payload);
     console.log(packet.topic, payloadStr);
-    switch (split[0] + '/' + split[1]) {
-        case 'status/lamp': saveLampData(split[2], payloadStr); break;
-        case 'status/illuminance': saveIlluminanceData(split[2], payloadStr); break;
-        case 'status/time': syncTime(payloadStr);
-    }
+    if (split[0] + '/' + split[1] == 'status/time') syncTime(payloadStr);
+    else if (split[0] == 'status') saveData(split[1], payloadStr);
 });
 
 // Run setInterval() on sendSetpoints() with 1 second delay

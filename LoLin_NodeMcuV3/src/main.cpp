@@ -405,20 +405,14 @@ void loop() {
         if (meja_dan_kursi_1.sensors_finished()) {
             meja_dan_kursi_1.calc_lux();
             if (send_data) {
-                meja_dan_kursi_1.calc_uniformity();
-                String time = now.timestamp();
-                String packet = String(meja_dan_kursi_1.red);
+                String packet = now.timestamp();
+                packet += "|" + String(meja_dan_kursi_1.red);
                 packet += "|" + String(meja_dan_kursi_1.green);
                 packet += "|" + String(meja_dan_kursi_1.blue);
                 packet += "|" + String(meja_dan_kursi_1.brightness*100);
-                packet += "|" + time;
-                client.publish("status/lamp/meja-dan-kursi-1", packet.c_str(), true);
-                packet = String(meja_dan_kursi_1.avg_lux);
+                packet += "|" + String(meja_dan_kursi_1.avg_lux);
                 packet += "|" + String(meja_dan_kursi_1.avg_lux_target);
-                packet += "|" + String(meja_dan_kursi_1.lux_min);
-                packet += "|" + String(meja_dan_kursi_1.uniformity);
-                packet += "|" + time;
-                client.publish("status/illuminance/meja-dan-kursi-1", packet.c_str(), true);
+                client.publish("status/meja-dan-kursi-1", packet.c_str(), true);
             }
             else {
                 meja_dan_kursi_1.leds_update();
@@ -438,20 +432,14 @@ void loop() {
         if (meja_dan_kursi_2.sensors_finished()) {
             meja_dan_kursi_2.calc_lux();
             if (send_data) {
-                meja_dan_kursi_2.calc_uniformity();
-                String time = now.timestamp();
-                String packet = String(meja_dan_kursi_2.red);
+                String packet = now.timestamp();
+                packet += "|" + String(meja_dan_kursi_2.red);
                 packet += "|" + String(meja_dan_kursi_2.green);
                 packet += "|" + String(meja_dan_kursi_2.blue);
                 packet += "|" + String(meja_dan_kursi_2.brightness*100);
-                packet += "|" + time;
-                client.publish("status/lamp/meja-dan-kursi-2", packet.c_str(), true);
-                packet = String(meja_dan_kursi_2.avg_lux);
+                packet += "|" + String(meja_dan_kursi_2.avg_lux);
                 packet += "|" + String(meja_dan_kursi_2.avg_lux_target);
-                packet += "|" + String(meja_dan_kursi_2.lux_min);
-                packet += "|" + String(meja_dan_kursi_2.uniformity);
-                packet += "|" + time;
-                client.publish("status/illuminance/meja-dan-kursi-2", packet.c_str(), true);
+                client.publish("status/meja-dan-kursi-2", packet.c_str(), true);
             }
             else {
                 meja_dan_kursi_2.leds_update();
@@ -471,20 +459,14 @@ void loop() {
         if (meja_dan_kursi_3.sensors_finished()) {
             meja_dan_kursi_3.calc_lux();
             if (send_data) {
-                meja_dan_kursi_3.calc_uniformity();
-                String time = now.timestamp();
-                String packet = String(meja_dan_kursi_3.red);
+                String packet = now.timestamp();
+                packet += "|" + String(meja_dan_kursi_3.red);
                 packet += "|" + String(meja_dan_kursi_3.green);
                 packet += "|" + String(meja_dan_kursi_3.blue);
                 packet += "|" + String(meja_dan_kursi_3.brightness*100);
-                packet += "|" + time;
-                client.publish("status/lamp/meja-dan-kursi-3", packet.c_str(), true);
-                packet = String(meja_dan_kursi_3.avg_lux);
+                packet += "|" + String(meja_dan_kursi_3.avg_lux);
                 packet += "|" + String(meja_dan_kursi_3.avg_lux_target);
-                packet += "|" + String(meja_dan_kursi_3.lux_min);
-                packet += "|" + String(meja_dan_kursi_3.uniformity);
-                packet += "|" + time;
-                client.publish("status/illuminance/meja-dan-kursi-3", packet.c_str(), true);
+                client.publish("status/meja-dan-kursi-3", packet.c_str(), true);
             }
             else {
                 meja_dan_kursi_3.leds_update();
@@ -504,20 +486,14 @@ void loop() {
         if (pameran_poster_1.sensors_finished()) {
             pameran_poster_1.calc_lux();
             if (send_data) {
-                pameran_poster_1.calc_uniformity();
-                String time = now.timestamp();
-                String packet = String(pameran_poster_1.red);
+                String packet = now.timestamp();
+                packet += "|" + String(pameran_poster_1.red);
                 packet += "|" + String(pameran_poster_1.green);
                 packet += "|" + String(pameran_poster_1.blue);
                 packet += "|" + String(pameran_poster_1.brightness*100);
-                packet += "|" + time;
-                client.publish("status/lamp/pameran-poster-1", packet.c_str(), true);
-                packet = String(pameran_poster_1.avg_lux);
+                packet += "|" + String(pameran_poster_1.avg_lux);
                 packet += "|" + String(pameran_poster_1.avg_lux_target);
-                packet += "|" + String(pameran_poster_1.lux_min);
-                packet += "|" + String(pameran_poster_1.uniformity);
-                packet += "|" + time;
-                client.publish("status/illuminance/pameran-poster-1", packet.c_str(), true);
+                client.publish("status/pameran-poster-1", packet.c_str(), true);
             }
             else {
                 pameran_poster_1.leds_update();
@@ -537,20 +513,14 @@ void loop() {
         if (pameran_poster_2.sensors_finished()) {
             pameran_poster_2.calc_lux();
             if (send_data) {
-                pameran_poster_2.calc_uniformity();
-                String time = now.timestamp();
-                String packet = String(pameran_poster_2.red);
+                String packet = now.timestamp();
+                packet += "|" + String(pameran_poster_2.red);
                 packet += "|" + String(pameran_poster_2.green);
                 packet += "|" + String(pameran_poster_2.blue);
                 packet += "|" + String(pameran_poster_2.brightness*100);
-                packet += "|" + time;
-                client.publish("status/lamp/pameran-poster-2", packet.c_str(), true);
-                packet = String(pameran_poster_2.avg_lux);
+                packet += "|" + String(pameran_poster_2.avg_lux);
                 packet += "|" + String(pameran_poster_2.avg_lux_target);
-                packet += "|" + String(pameran_poster_2.lux_min);
-                packet += "|" + String(pameran_poster_2.uniformity);
-                packet += "|" + time;
-                client.publish("status/illuminance/pameran-poster-2", packet.c_str(), true);
+                client.publish("status/pameran-poster-2", packet.c_str(), true);
             }
             else {
                 pameran_poster_2.leds_update();
@@ -570,20 +540,14 @@ void loop() {
         if (panggung_serbaguna.sensors_finished()) {
             panggung_serbaguna.calc_lux();
             if (send_data) {
-                panggung_serbaguna.calc_uniformity();
-                String time = now.timestamp();
-                String packet = String(panggung_serbaguna.red);
+                String packet = now.timestamp();
+                packet += "|" + String(panggung_serbaguna.red);
                 packet += "|" + String(panggung_serbaguna.green);
                 packet += "|" + String(panggung_serbaguna.blue);
                 packet += "|" + String(panggung_serbaguna.brightness*100);
-                packet += "|" + time;
-                client.publish("status/lamp/panggung-serbaguna", packet.c_str(), true);
-                packet = String(panggung_serbaguna.avg_lux);
+                packet += "|" + String(panggung_serbaguna.avg_lux);
                 packet += "|" + String(panggung_serbaguna.avg_lux_target);
-                packet += "|" + String(panggung_serbaguna.lux_min);
-                packet += "|" + String(panggung_serbaguna.uniformity);
-                packet += "|" + time;
-                client.publish("status/illuminance/panggung-serbaguna", packet.c_str(), true);
+                client.publish("status/panggung-serbaguna", packet.c_str(), true);
             }
             else {
                 panggung_serbaguna.leds_update();
@@ -603,20 +567,14 @@ void loop() {
         if (pejalan_kaki_1.sensors_finished()) {
             pejalan_kaki_1.calc_lux();
             if (send_data) {
-                pejalan_kaki_1.calc_uniformity();
-                String time = now.timestamp();
-                String packet = String(pejalan_kaki_1.red);
+                String packet = now.timestamp();
+                packet += "|" + String(pejalan_kaki_1.red);
                 packet += "|" + String(pejalan_kaki_1.green);
                 packet += "|" + String(pejalan_kaki_1.blue);
                 packet += "|" + String(pejalan_kaki_1.brightness*100);
-                packet += "|" + time;
-                client.publish("status/lamp/pejalan-kaki-1", packet.c_str(), true);
-                packet = String(pejalan_kaki_1.avg_lux);
+                packet += "|" + String(pejalan_kaki_1.avg_lux);
                 packet += "|" + String(pejalan_kaki_1.avg_lux_target);
-                packet += "|" + String(pejalan_kaki_1.lux_min);
-                packet += "|" + String(pejalan_kaki_1.uniformity);
-                packet += "|" + time;
-                client.publish("status/illuminance/pejalan-kaki-1", packet.c_str(), true);
+                client.publish("status/pejalan-kaki-1", packet.c_str(), true);
             }
             else {
                 pejalan_kaki_1.leds_update();
@@ -636,20 +594,14 @@ void loop() {
         if (pejalan_kaki_2.sensors_finished()) {
             pejalan_kaki_2.calc_lux();
             if (send_data) {
-                pejalan_kaki_2.calc_uniformity();
-                String time = now.timestamp();
-                String packet = String(pejalan_kaki_2.red);
+                String packet = now.timestamp();
+                packet += "|" + String(pejalan_kaki_2.red);
                 packet += "|" + String(pejalan_kaki_2.green);
                 packet += "|" + String(pejalan_kaki_2.blue);
                 packet += "|" + String(pejalan_kaki_2.brightness*100);
-                packet += "|" + time;
-                client.publish("status/lamp/pejalan-kaki-2", packet.c_str(), true);
-                packet = String(pejalan_kaki_2.avg_lux);
+                packet += "|" + String(pejalan_kaki_2.avg_lux);
                 packet += "|" + String(pejalan_kaki_2.avg_lux_target);
-                packet += "|" + String(pejalan_kaki_2.lux_min);
-                packet += "|" + String(pejalan_kaki_2.uniformity);
-                packet += "|" + time;
-                client.publish("status/illuminance/pejalan-kaki-2", packet.c_str(), true);
+                client.publish("status/pejalan-kaki-2", packet.c_str(), true);
             }
             else {
                 pejalan_kaki_2.leds_update();
@@ -669,20 +621,14 @@ void loop() {
         if (pejalan_kaki_3.sensors_finished()) {
             pejalan_kaki_3.calc_lux();
             if (send_data) {
-                pejalan_kaki_3.calc_uniformity();
-                String time = now.timestamp();
-                String packet = String(pejalan_kaki_3.red);
+                String packet = now.timestamp();
+                packet += "|" + String(pejalan_kaki_3.red);
                 packet += "|" + String(pejalan_kaki_3.green);
                 packet += "|" + String(pejalan_kaki_3.blue);
                 packet += "|" + String(pejalan_kaki_3.brightness*100);
-                packet += "|" + time;
-                client.publish("status/lamp/pejalan-kaki-3", packet.c_str(), true);
-                packet = String(pejalan_kaki_3.avg_lux);
+                packet += "|" + String(pejalan_kaki_3.avg_lux);
                 packet += "|" + String(pejalan_kaki_3.avg_lux_target);
-                packet += "|" + String(pejalan_kaki_3.lux_min);
-                packet += "|" + String(pejalan_kaki_3.uniformity);
-                packet += "|" + time;
-                client.publish("status/illuminance/pejalan-kaki-3", packet.c_str(), true);
+                client.publish("status/pejalan-kaki-3", packet.c_str(), true);
             }
             else {
                 pejalan_kaki_3.leds_update();
@@ -702,20 +648,14 @@ void loop() {
         if (pejalan_kaki_4.sensors_finished()) {
             pejalan_kaki_4.calc_lux();
             if (send_data) {
-                pejalan_kaki_4.calc_uniformity();
-                String time = now.timestamp();
-                String packet = String(pejalan_kaki_4.red);
+                String packet = now.timestamp();
+                packet += "|" + String(pejalan_kaki_4.red);
                 packet += "|" + String(pejalan_kaki_4.green);
                 packet += "|" + String(pejalan_kaki_4.blue);
                 packet += "|" + String(pejalan_kaki_4.brightness*100);
-                packet += "|" + time;
-                client.publish("status/lamp/pejalan-kaki-4", packet.c_str(), true);
-                packet = String(pejalan_kaki_4.avg_lux);
+                packet += "|" + String(pejalan_kaki_4.avg_lux);
                 packet += "|" + String(pejalan_kaki_4.avg_lux_target);
-                packet += "|" + String(pejalan_kaki_4.lux_min);
-                packet += "|" + String(pejalan_kaki_4.uniformity);
-                packet += "|" + time;
-                client.publish("status/illuminance/pejalan-kaki-4", packet.c_str(), true);
+                client.publish("status/pejalan-kaki-4", packet.c_str(), true);
             }
             else {
                 pejalan_kaki_4.leds_update();

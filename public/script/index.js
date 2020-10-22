@@ -69,40 +69,33 @@ function colorSet(event) {
     // const invertedStr = 'rgb(' + inverted.r + ', ' + inverted.g + ', ' + inverted.b + ')';
     // lamps[event.target.id].style.color = invertedStr;
 }
-function updateLamp(area, payload) {
-    // payload format sent from microcontroller is 'red|green|blue|brightness|ISO_timestamp' (string)
-    const split = payload.split('|');
-    const red = split[0];
-    const green = split[1];
-    const blue = split[2];
-    const brightness = parseFloat(split[3]);
-    lamps[area].textContent = Math.round(brightness).toString() + '%';
-    lamps[area].style.backgroundColor = 'rgb(' + red + ', ' + green + ', ' + blue + ')';
+function updateLamp(a, r, g, b, br) {
+    const brightness = parseFloat(br);
+    lamps[a].textContent = Math.round(brightness).toString() + '%';
+    lamps[a].style.backgroundColor = 'rgb(' + r + ', ' + g + ', ' + b + ')';
     // Invert the text color so it's readable
-    const inverted = invertRgb({r: red, g: green, b: blue});
+    const inverted = invertRgb({'r': r, 'g': g, 'b': b});
     const invertedStr = 'rgb(' + inverted.r + ', ' + inverted.g + ', ' + inverted.b + ')';
-    lamps[area].style.color = invertedStr;
+    lamps[a].style.color = invertedStr;
     // Also update the color selector value
-    const colorPicker = document.querySelector('#' + area + '[type="color"]');
-    colorPicker.value = rgbToHex(parseInt(red), parseInt(green), parseInt(blue));
+    const colorPicker = document.querySelector('#' + a + '[type="color"]');
+    colorPicker.value = rgbToHex(parseInt(r), parseInt(g), parseInt(b));
 }
-async function updateIlluminance(area, payload) {
-    // payload format sent from microcontroller is 'lux|lux_target|lux_min|uniformity|ISO_timestamp' (string)
-    const split = payload.split('|');
-    const time = new Date(split[split.length-1]);
+async function updateIlluminance(a, tm, lx, lxTrg) {
+    const time = new Date(tm);
     const timeStr = ('0' + time.getHours()).slice(-2) + '.' + ('0' + time.getMinutes()).slice(-2);
-    chartsData[area].push({x: timeStr, y: parseFloat(split[0])});
-    if (chartsData[area].length > xAxisNum) chartsData[area].shift();
+    chartsData[a].push({x: timeStr, y: parseFloat(lx)});
+    if (chartsData[a].length > xAxisNum) chartsData[a].shift();
     // Using 'await' to update the chart data first before updating annotation
-    await ApexCharts.exec(area, 'updateSeries', [{data: chartsData[area]}]);
+    await ApexCharts.exec(a, 'updateSeries', [{data: chartsData[a]}]);
     // Update the illuminance target annotation
-    ApexCharts.exec(area, 'addYaxisAnnotation', {
-        y: parseFloat(split[1]),
+    ApexCharts.exec(a, 'addYaxisAnnotation', {
+        y: parseFloat(lxTrg),
         strokeDashArray: 20,
         borderColor: '#e03c31',
         fillColor: '#e03c31',
         label: {
-            text: 'Ē = ' + split[1] + ' lx',
+            text: 'Target: ' + lxTrg + ' lx',
             textAnchor: 'end',
             borderColor: '#e03c31',
             style: {
@@ -117,7 +110,20 @@ async function updateIlluminance(area, payload) {
         }
     }, false);
     // Show the new iluminance value in the web page
-    illuminances[area].textContent = split[0] + ' lx';
+    illuminances[a].textContent = lx + ' lx';
+}
+function updateAll(area, payload) {
+    // payload format sent from microcontroller is 'time|red|green|blue|brightness|avg_lux|avg_lux_target' (string)
+    const split = payload.split('|');
+    const time = split[0];
+    const red = split[1];
+    const green = split[2];
+    const blue = split[3];
+    const brightness = split[4];
+    const avg_lux = split[5];
+    const avg_lux_target = split[6];
+    updateIlluminance(area, time, avg_lux, avg_lux_target);
+    updateLamp(area, red, green, blue, brightness);
 }
 function upload(form) {
     // Create a new XMLHttpRequest (XHR) DOM object instance
@@ -156,19 +162,22 @@ function addImgNode(id) {
         res.forEach((imgPath, index) => {
             // Skip unconverted image files (just in case)
             if (/-0[0-9]+\./.test(imgPath)) return;
+            // Skip building_layout.jpeg and logo_cita.png
+            if (/building_layout/.test(imgPath)) return;
+            if (/logo_cita/.test(imgPath)) return;
             // Extract the time and area information first
             const baseNameNoExt = imgPath.slice(0, -6).split('/')[1];
             const split = baseNameNoExt.split('-');
             const time = split[0];
             const areaName = split[1].replace(/_+/g, ' '); // Just in case there are underscores
             // let title = areaName + ' (' + time + ', Ē = ';
-            let title = areaName + ' (' + time + ', Tingkat Intensitas Cahaya Lampu = ';
+            let title = areaName + ' (Waktu: ' + time + ', Tingkat Intensitas Cahaya Lampu: ';
             if (index % 2 == 0) {
-                title += setpoints[index/2].brightness + '%, Ē = ';
+                title += setpoints[index/2].brightness + '%, Target Iluminansi: ';
                 title += setpoints[index/2].illuminance + ' lx)';
             }
             else {
-                title += setpoints[(index-1)/2].brightness + '%, Ē = ';
+                title += setpoints[(index-1)/2].brightness + '%, Target Iluminansi: ';
                 title += setpoints[(index-1)/2].illuminance + ' lx)';
             }
             // Create the image node
@@ -213,10 +222,7 @@ uploadForm.addEventListener('submit', event => {
 client.on('message', function(topic, payload){
     const split = topic.split('/');
     const payloadStr = payload.toString();
-    switch (split[0] + '/' + split[1]) {
-        case 'status/lamp': updateLamp(split[2], payloadStr); break;
-        case 'status/illuminance': updateIlluminance(split[2], payloadStr); break;
-    }
+    if (split[0] == 'status' && split[1] != 'time') updateAll(split[1], payloadStr);
 });
 
 // Show simulation results of all available setpoint values (taken from the uploaded pdf files)

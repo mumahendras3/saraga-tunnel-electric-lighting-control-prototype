@@ -62,6 +62,7 @@ function genChartOpts(ID) {
     chart: {
       type: 'line',
       id: ID,
+      fontFamily: 'Verdana',
       dropShadow: {
         enabled: true,
         color: '#000',
@@ -84,6 +85,12 @@ function genChartOpts(ID) {
     colors: ['#77B6EA'],
     dataLabels: {
       enabled: true,
+      style: {
+        fontSize: '1rem'
+      },
+      background: {
+        opacity: 1
+      }
     },
     stroke: {
       curve: 'smooth'
@@ -101,12 +108,30 @@ function genChartOpts(ID) {
     xaxis: {
       type: 'category',
       title: {
-        text: 'Waktu'
+        text: 'Waktu',
+        offsetY: -20,
+        style: {
+          fontSize: '1.2rem'
+        }
+      },
+      labels: {
+        style: {
+          fontSize: '1rem'
+        }
       }
     },
     yaxis: {
       title: {
-        text: 'Iluminansi (lx)'
+        text: 'Iluminansi (lx)',
+        offsetX: -10,
+        style: {
+          fontSize: '1.2rem'
+        }
+      },
+      labels: {
+        style: {
+          fontSize: '1rem'
+        }
       },
       min: 0,
       forceNiceScale: true

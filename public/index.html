@@ -3,132 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Antarmuka Web Pengontrol</title>
     <link rel="stylesheet" href="css/apexcharts.css">
+    <link rel="stylesheet" href="css/all.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/area-selector.css">
     <link rel="stylesheet" href="css/index.css">
+    <script src="script/mqtt.min.js" defer></script>
+    <script src="script/apexcharts.min.js" defer></script>
+    <script src="script/chartOpts.js" defer></script>
+    <script src="script/index.js" defer></script>
+    <title>Antarmuka Web Pengontrol - Panel Kontrol</title>
 </head>
 <body>
-    <h1>Tata Letak Bangunan</h1>
-    <img src="images/building_layout.jpeg" alt="Tata Letak Bangunan" class="image">
-    <h1>Panel Kontrol</h1>
-    <h2>Pengaturan Lampu</h2>
-    <div class="section">
-        <div class="subsection">
+    <div class="navbar">
+        <div class="menu">
+            <a href="index.html" class="menu-btn" style="background-color: #1985E6;">Panel Kontrol</a>
+            <a href="simulation.html" class="menu-btn">Hasil Simulasi</a>
+            <a href="map.html" class="menu-btn">Denah Bangunan</a>
+        </div>
+        <img class="logo" src="images/logo_cita.png" alt="Logo CITA ITB">
+    </div>
+    <div class="area-selector-container">
+        <select class="area-selector">
+            <option value="meja-dan-kursi-1">Meja dan Kursi 1</option>
+            <option value="meja-dan-kursi-2">Meja dan Kursi 2</option>
+            <option value="meja-dan-kursi-3">Meja dan Kursi 3</option>
+            <option value="pameran-poster-1">Pameran Poster 1</option>
+            <option value="pameran-poster-2">Pameran Poster 2</option>
+            <option value="panggung-serbaguna">Panggung Serbaguna</option>
+            <option value="pejalan-kaki-1">Pejalan Kaki 1</option>
+            <option value="pejalan-kaki-2">Pejalan Kaki 2</option>
+            <option value="pejalan-kaki-3">Pejalan Kaki 3</option>
+            <option value="pejalan-kaki-4">Pejalan Kaki 4</option>
+        </select>
+    </div>
+    <div class="grid-container">
+        <div class="section-lamp" id="meja-dan-kursi-1">
+            <div class="section-title">Pengaturan Lampu</div>
             <div class="lamp" id="meja-dan-kursi-1">...</div>
             <input type="color" value="#ffffff" id="meja-dan-kursi-1">
-            <h3>Meja dan Kursi 1</h3>
         </div>
-        <div class="subsection">
-            <div class="lamp" id="meja-dan-kursi-2">...</div>
-            <input type="color" value="#ffffff" id="meja-dan-kursi-2">
-            <h3>Meja dan Kursi 2</h3>
-        </div>
-        <div class="subsection">
-            <div class="lamp" id="meja-dan-kursi-3">...</div>
-            <input type="color" value="#ffffff" id="meja-dan-kursi-3">
-            <h3>Meja dan Kursi 3</h3>
-        </div>
-        <div class="subsection">
-            <div class="lamp" id="pameran-poster-1">...</div>
-            <input type="color" value="#ffffff" id="pameran-poster-1">
-            <h3>Pameran Poster 1</h3>
-        </div>
-        <div class="subsection">
-            <div class="lamp" id="pameran-poster-2">...</div>
-            <input type="color" value="#ffffff" id="pameran-poster-2">
-            <h3>Pameran Poster 2</h3>
-        </div>
-        <div class="subsection">
-            <div class="lamp" id="panggung-serbaguna">...</div>
-            <input type="color" value="#ffffff" id="panggung-serbaguna">
-            <h3>Panggung Serbaguna</h3>
-        </div>
-        <div class="subsection">
-            <div class="lamp" id="pejalan-kaki-1">...</div>
-            <input type="color" value="#ffffff" id="pejalan-kaki-1">
-            <h3>Pejalan Kaki 1</h3>
-        </div>
-        <div class="subsection">
-            <div class="lamp" id="pejalan-kaki-2">...</div>
-            <input type="color" value="#ffffff" id="pejalan-kaki-2">
-            <h3>Pejalan Kaki 2</h3>
-        </div>
-        <div class="subsection">
-            <div class="lamp" id="pejalan-kaki-3">...</div>
-            <input type="color" value="#ffffff" id="pejalan-kaki-3">
-            <h3>Pejalan Kaki 3</h3>
-        </div>
-        <div class="subsection">
-            <div class="lamp" id="pejalan-kaki-4">...</div>
-            <input type="color" value="#ffffff" id="pejalan-kaki-4">
-            <h3>Pejalan Kaki 4</h3>
-        </div>
-    </div>
-    <h2>Pengaturan Batas Iluminansi</h2>
-    <h3>Format penamaan berkas: jam.menit-nama_tempat.pdf (nama_tempat tidak boleh mengandung "-")</h3>
-    <h3>Contoh penamaan berkas yang benar: 06.45-Meja_dan_Kursi_1.pdf, 16.24-Pejalan Kaki 2.pdf</h3>
-    <form enctype="multipart/form-data" class="section">
-        <input type="file" name="upload" accept=".pdf" multiple>
-        <input type="submit" value="Upload">
-    </form>
-    <h2>Iluminansi Rata-Rata</h2>
-    <div class="section">
-        <div class="subsection">
-            <h3>Meja dan Kursi 1</h3>
-            <h4 id="meja-dan-kursi-1" class="illuminance">...</h4>
+        <div class="section-sensor" id="meja-dan-kursi-1">
+            <div class="section-title">Hasil Pengukuran</div>
+            <div id="meja-dan-kursi-1" class="illuminance">...</div>
             <div id="meja-dan-kursi-1" class="chart"></div>
         </div>
-        <div class="subsection">
-            <h3>Meja dan Kursi 2</h3>
-            <h4 id="meja-dan-kursi-2" class="illuminance">...</h4>
+        <div class="section-lamp" id="meja-dan-kursi-2">
+            <div class="section-title">Pengaturan Lampu</div>
+            <div class="lamp" id="meja-dan-kursi-2">...</div>
+            <input type="color" value="#ffffff" id="meja-dan-kursi-2">
+        </div>
+        <div class="section-sensor" id="meja-dan-kursi-2">
+            <div class="section-title">Hasil Pengukuran</div>
+            <div id="meja-dan-kursi-2" class="illuminance">...</div>
             <div id="meja-dan-kursi-2" class="chart"></div>
         </div>
-        <div class="subsection">
-            <h3>Meja dan Kursi 3</h3>
-            <h4 id="meja-dan-kursi-3" class="illuminance">...</h4>
+        <div class="section-lamp" id="meja-dan-kursi-3">
+            <div class="section-title">Pengaturan Lampu</div>
+            <div class="lamp" id="meja-dan-kursi-3">...</div>
+            <input type="color" value="#ffffff" id="meja-dan-kursi-3">
+        </div>
+        <div class="section-sensor" id="meja-dan-kursi-3">
+            <div class="section-title">Hasil Pengukuran</div>
+            <div id="meja-dan-kursi-3" class="illuminance">...</div>
             <div id="meja-dan-kursi-3" class="chart"></div>
         </div>
-        <div class="subsection">
-            <h3>Pameran Poster 1</h3>
-            <h4 id="pameran-poster-1" class="illuminance">...</h4>
+        <div class="section-lamp" id="pameran-poster-1">
+            <div class="section-title">Pengaturan Lampu</div>
+            <div class="lamp" id="pameran-poster-1">...</div>
+            <input type="color" value="#ffffff" id="pameran-poster-1">
+        </div>
+        <div class="section-sensor" id="pameran-poster-1">
+            <div class="section-title">Hasil Pengukuran</div>
+            <div id="pameran-poster-1" class="illuminance">...</div>
             <div id="pameran-poster-1" class="chart"></div>
         </div>
-        <div class="subsection">
-            <h3>Pameran Poster 2</h3>
-            <h4 id="pameran-poster-2" class="illuminance">...</h4>
+        <div class="section-lamp" id="pameran-poster-2">
+            <div class="section-title">Pengaturan Lampu</div>
+            <div class="lamp" id="pameran-poster-2">...</div>
+            <input type="color" value="#ffffff" id="pameran-poster-2">
+        </div>
+        <div class="section-sensor" id="pameran-poster-2">
+            <div class="section-title">Hasil Pengukuran</div>
+            <div id="pameran-poster-2" class="illuminance">...</div>
             <div id="pameran-poster-2" class="chart"></div>
         </div>
-        <div class="subsection">
-            <h3>Panggung Serbaguna</h3>
-            <h4 id="panggung-serbaguna" class="illuminance">...</h4>
+        <div class="section-lamp" id="panggung-serbaguna">
+            <div class="section-title">Pengaturan Lampu</div>
+            <div class="lamp" id="panggung-serbaguna">...</div>
+            <input type="color" value="#ffffff" id="panggung-serbaguna">
+        </div>
+        <div class="section-sensor" id="panggung-serbaguna">
+            <div class="section-title">Hasil Pengukuran</div>
+            <div id="panggung-serbaguna" class="illuminance">...</div>
             <div id="panggung-serbaguna" class="chart"></div>
         </div>
-        <div class="subsection">
-            <h3>Pejalan Kaki 1</h3>
-            <h4 id="pejalan-kaki-1" class="illuminance">...</h4>
+        <div class="section-lamp" id="pejalan-kaki-1">
+            <div class="section-title">Pengaturan Lampu</div>
+            <div class="lamp" id="pejalan-kaki-1">...</div>
+            <input type="color" value="#ffffff" id="pejalan-kaki-1">
+        </div>
+        <div class="section-sensor" id="pejalan-kaki-1">
+            <div class="section-title">Hasil Pengukuran</div>
+            <div id="pejalan-kaki-1" class="illuminance">...</div>
             <div id="pejalan-kaki-1" class="chart"></div>
         </div>
-        <div class="subsection">
-            <h3>Pejalan Kaki 2</h3>
-            <h4 id="pejalan-kaki-2" class="illuminance">...</h4>
+        <div class="section-lamp" id="pejalan-kaki-2">
+            <div class="section-title">Pengaturan Lampu</div>
+            <div class="lamp" id="pejalan-kaki-2">...</div>
+            <input type="color" value="#ffffff" id="pejalan-kaki-2">
+        </div>
+        <div class="section-sensor" id="pejalan-kaki-2">
+            <div class="section-title">Hasil Pengukuran</div>
+            <div id="pejalan-kaki-2" class="illuminance">...</div>
             <div id="pejalan-kaki-2" class="chart"></div>
         </div>
-        <div class="subsection">
-            <h3>Pejalan Kaki 3</h3>
-            <h4 id="pejalan-kaki-3" class="illuminance">...</h4>
+        <div class="section-lamp" id="pejalan-kaki-3">
+            <div class="section-title">Pengaturan Lampu</div>
+            <div class="lamp" id="pejalan-kaki-3">...</div>
+            <input type="color" value="#ffffff" id="pejalan-kaki-3">
+        </div>
+        <div class="section-sensor" id="pejalan-kaki-3">
+            <div class="section-title">Hasil Pengukuran</div>
+            <div id="pejalan-kaki-3" class="illuminance">...</div>
             <div id="pejalan-kaki-3" class="chart"></div>
         </div>
-        <div class="subsection">
-            <h3>Pejalan Kaki 4</h3>
-            <h4 id="pejalan-kaki-4" class="illuminance">...</h4>
+        <div class="section-lamp" id="pejalan-kaki-4">
+            <div class="section-title">Pengaturan Lampu</div>
+            <div class="lamp" id="pejalan-kaki-4">...</div>
+            <input type="color" value="#ffffff" id="pejalan-kaki-4">
+        </div>
+        <div class="section-sensor" id="pejalan-kaki-4">
+            <div class="section-title">Hasil Pengukuran</div>
+            <div id="pejalan-kaki-4" class="illuminance">...</div>
             <div id="pejalan-kaki-4" class="chart"></div>
         </div>
+        <div class="section-upload" style="display: flex;">
+            <div class="section-title">Pengaturan Batas Iluminansi</div>
+            <div class="file-upload-text">
+                Format penamaan berkas: jam.menit-nama_tempat.pdf<br>
+                Contoh: 06.45-Meja_dan_Kursi_1.pdf
+            </div>
+            <form enctype="multipart/form-data">
+                <input type="file" name="upload" accept=".pdf" multiple>
+                <input type="submit" value="Upload">
+            </form>
+        </div>
     </div>
-    <h1>Distribusi Iluminansi Hasil Simulasi</h1>
-    <div id="section-simulation"></div>
 </body>
 </html>
-<script src="script/mqtt.min.js"></script>
-<script src="script/apexcharts.min.js"></script>
-<script src="script/chartOpts.js"></script>
-<script src="script/index.js"></script>

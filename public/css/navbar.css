@@ -1,0 +1,38 @@
+.navbar {
+    display: flex;
+    align-items: center;
+    background-color: #479DEB;
+    position: fixed; /* Set the navbar to fixed position */
+    top: 0; /* Position the navbar at the top of the page */
+    width: 100%; /* Full width */
+}
+
+.menu {
+    display: flex;
+    flex-grow: 3;
+    align-items: center;
+    margin-left: .5rem;
+}
+
+.menu-btn {
+    color: white;
+    border-radius: 10px;
+    align-items: center;
+    justify-content: space-evenly;
+    display: flex;
+    font-size: 2rem;
+    height: 4rem;
+    margin: 0 .5rem;
+    padding: 0 1.5rem;
+    text-decoration: none;
+}
+
+.menu-btn:hover {
+    background-color: #1985E6;
+}
+
+.logo {
+    flex-basis: 15rem;
+    margin: 1rem 1rem;
+    border-radius: 5px;
+}

@@ -2,6 +2,8 @@
 const serverAddress = 'localhost'; // MQTT server address
 const serverPort = 3000; // MQTT server port (using websocket)
 const xAxisNum = 11; // Maximum number of X axis categories for all charts
+let areaSelector = document.querySelector('select');
+let currentArea = areaSelector.value.replace(/ +/g, '-').toLowerCase();
 
 // MQTT Setup
 const client = mqtt.connect('ws://' + serverAddress + ':' + serverPort);
@@ -11,7 +13,7 @@ client.subscribe('status/#');
 client.subscribe('set/illuminance/+');
 
 // Get elements
-let uploadForm = document.querySelector('form.section');
+let uploadForm = document.querySelector('form');
 let uploadInput = document.querySelector('[name=upload]');
 let illuminances = {};
 let lamps = {};
@@ -97,10 +99,12 @@ async function updateIlluminance(a, tm, lx, lxTrg) {
         label: {
             text: 'Target: ' + lxTrg + ' lx',
             textAnchor: 'end',
+            offsetY: 20,
             borderColor: '#e03c31',
             style: {
                 background: '#e03c31',
                 color: '#fff',
+                fontSize: '1rem',
                 fontWeight: 700,
                 padding: {
                     left: 4,
@@ -133,9 +137,6 @@ function upload(form) {
     // Define what happens on successful data submission
     XHR.addEventListener('load', event => {
         alert(event.target.responseText);
-        // Give some time for the server to extract the simulation images from
-        // the uploaded pdfs and then refresh the displayed simulation images
-        setTimeout(addImgNode, 10000, 'section-simulation');
     });
     // Define what happens in case of error
     XHR.addEventListener('error', event => {
@@ -146,68 +147,20 @@ function upload(form) {
     // The data sent is what the user provided in the form
     XHR.send(FD);
 }
-function addImgNode(id) {
-    fetch('/get-images')
-    .then(res => res.json())
-    .then(async res => {
-        if (res == []) return;
-        if (res == ['building_layout.jpeg']) return;
-        if (res == ['logo_cita.png']) return;
-        if (res == ['building_layout.jpeg', 'logo_cita.png']) return;
-        let parentNode = document.getElementById(id);
-        // Empty the parent node first
-        parentNode.textContent = '';
-        const setpoints = await getSetpoints();
-        if (setpoints == []) return;
-        res.forEach((imgPath, index) => {
-            // Skip unconverted image files (just in case)
-            if (/-0[0-9]+\./.test(imgPath)) return;
-            // Skip building_layout.jpeg and logo_cita.png
-            if (/building_layout/.test(imgPath)) return;
-            if (/logo_cita/.test(imgPath)) return;
-            // Extract the time and area information first
-            const baseNameNoExt = imgPath.slice(0, -6).split('/')[1];
-            const split = baseNameNoExt.split('-');
-            const time = split[0];
-            const areaName = split[1].replace(/_+/g, ' '); // Just in case there are underscores
-            // let title = areaName + ' (' + time + ', Ē = ';
-            let title = areaName + ' (Waktu: ' + time + ', Tingkat Intensitas Cahaya Lampu: ';
-            if (index % 2 == 0) {
-                title += setpoints[index/2].brightness + '%, Target Iluminansi: ';
-                title += setpoints[index/2].illuminance + ' lx)';
-            }
-            else {
-                title += setpoints[(index-1)/2].brightness + '%, Target Iluminansi: ';
-                title += setpoints[(index-1)/2].illuminance + ' lx)';
-            }
-            // Create the image node
-            let imgElement = document.createElement('img');
-            // Set the img source
-            imgElement.setAttribute('src', imgPath);
-            // Setting the appropriate alt text
-            let altStr = 'Simulasi distribusi iluminansi di area ';
-            altStr += title;
-            imgElement.setAttribute('alt', altStr);
-            // Set the class to 'image'
-            imgElement.setAttribute('class', 'image');
-            // Attach all new nodes to the parent node
-            // Create only 1 title for each image pair (illuminance dist. and its legend)
-            if (index % 2 == 0) {
-                let titleElement = document.createElement('h2');
-                titleElement.textContent = title;
-                parentNode.appendChild(titleElement);
-                
-            }
-            parentNode.appendChild(imgElement);
-        });
-    })
-    .catch(err => console.error(err));
+function displayArea(element) {
+    const nextArea = element.target.value;
+    // Hide currentArea and show nextArea
+    document.querySelectorAll('#' + currentArea + '.section-lamp,' + '#' + currentArea + '.section-sensor').forEach(elm => {
+        elm.setAttribute('style', 'display: none');
+    });
+    document.querySelectorAll('#' + nextArea + '.section-lamp,' + '#' + nextArea + '.section-sensor').forEach(elm => {
+        elm.setAttribute('style', 'display: flex');
+    });
+    currentArea = nextArea;
 }
-async function getSetpoints() {
-    const res = await fetch('/get-setpoints');
-    return res.json();
-}
+
 // Attaching functions to some events
+areaSelector.addEventListener('change', displayArea);
 document.querySelectorAll('[type=color]').forEach(function(element) {
     // element.addEventListener('input', colorPreview, false);
     element.addEventListener('change', colorSet, false);
@@ -218,12 +171,14 @@ uploadForm.addEventListener('submit', event => {
     uploadInput.value = '';
 });
 
+// Display the currently selected area at first load
+document.querySelectorAll('#' + currentArea + '.section-lamp,' + '#' + currentArea + '.section-sensor').forEach(elm => {
+    elm.setAttribute('style', 'display: flex');
+});
+
 // MQTT upon receive
 client.on('message', function(topic, payload){
     const split = topic.split('/');
     const payloadStr = payload.toString();
     if (split[0] == 'status' && split[1] != 'time') updateAll(split[1], payloadStr);
 });
-
-// Show simulation results of all available setpoint values (taken from the uploaded pdf files)
-addImgNode('section-simulation')

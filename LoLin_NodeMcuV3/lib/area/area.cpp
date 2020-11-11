@@ -63,20 +63,20 @@ bool area::sensors_finished() {
 // save the smallest illuminance value of the area
 void area::calc_lux() {
     float sum = 0;
-    float min = 70000;
+    // float min = 70000;
     for (uint8_t n = 0; n < num_sensors; n++) {
       float val = sensor[n].getLux();
       sum += val;
-      if (val < min) min = val;
+    //   if (val < min) min = val;
     }
     avg_lux = sum / num_sensors;
-    lux_min = min;
+    // lux_min = min;
     calculated = true;
 }
-// Method to calculate the overall uniformity of the area
-void area::calc_uniformity() {
-    uniformity = lux_min / avg_lux;
-}
+// // Method to calculate the overall uniformity of the area
+// void area::calc_uniformity() {
+//     uniformity = lux_min / avg_lux;
+// }
 // Method to check the average lux calculation status in the area
 bool area::lux_calculated() {
     return calculated;

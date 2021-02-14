@@ -14,9 +14,9 @@
 #define PIN_INTERRUPT D1
 
 // Global variables
-const char* ssid = "Wisma Thullabul Ilmi";
-const char* password = "udruskitabersama";
-const char* mqtt_server = "192.168.1.20";
+const char* ssid = "RN8Pro";
+const char* password = "Mahendras9708";
+const char* mqtt_server = "192.168.43.188";
 bool update_strip = false;
 volatile bool start_measuring = false;
 volatile bool send_data = false;
@@ -25,19 +25,19 @@ volatile bool send_data = false;
 // one row per sensor, first column for I2C_Mux_Number, second column
 // for I2C_Mux_Channel, and third column for Low(0)/High(1)_Addr_Pin
 uint8_t meja_dan_kursi_1_address[NUM_BH1750_MEJA_DAN_KURSI_1][3] = {
-    {1, 1, 0}
+    {0, 5, 0}
 };
 uint8_t meja_dan_kursi_2_address[NUM_BH1750_MEJA_DAN_KURSI_2][3] = {
-    {1, 2, 0}
+    {0, 4, 0}
 };
 uint8_t meja_dan_kursi_3_address[NUM_BH1750_MEJA_DAN_KURSI_3][3] = {
-    {1, 3, 0}
-};
-uint8_t pameran_poster_1_address[NUM_BH1750_PAMERAN_POSTER_1][3] = {
     {0, 3, 0}
 };
+uint8_t pameran_poster_1_address[NUM_BH1750_PAMERAN_POSTER_1][3] = {
+    {0, 1, 0}
+};
 uint8_t pameran_poster_2_address[NUM_BH1750_PAMERAN_POSTER_2][3] = {
-    {0, 2, 0}
+    {0, 0, 0}
 };
 uint8_t panggung_serbaguna_address[NUM_BH1750_PANGGUNG_SERBAGUNA][3] = {
     {1, 0, 0}
@@ -46,15 +46,13 @@ uint8_t pejalan_kaki_1_address[NUM_BH1750_PEJALAN_KAKI_1][3] = {
     {0, 7, 0}
 };
 uint8_t pejalan_kaki_2_address[NUM_BH1750_PEJALAN_KAKI_2][3] = {
-    {0, 6, 0},
-    {0, 5, 0},
-    {0, 4, 0}
+    {0, 2, 0}
 };
 uint8_t pejalan_kaki_3_address[NUM_BH1750_PEJALAN_KAKI_3][3] = {
-    {0, 1, 0},
+    {1, 7, 0}
 };
 uint8_t pejalan_kaki_4_address[NUM_BH1750_PEJALAN_KAKI_4][3] = {
-    {0, 0, 0},
+    {1, 6, 0}
 };
 
 // Object initializations
@@ -288,6 +286,18 @@ void setup() {
     pejalan_kaki_2.set_address(pejalan_kaki_2_address);
     pejalan_kaki_3.set_address(pejalan_kaki_3_address);
     pejalan_kaki_4.set_address(pejalan_kaki_4_address);
+
+    // Set luxFactor for each sensor in each area
+    meja_dan_kursi_1.set_luxFactor(0, LUXFACTOR_1_MEJA_DAN_KURSI_1);
+    meja_dan_kursi_2.set_luxFactor(0, LUXFACTOR_1_MEJA_DAN_KURSI_2);
+    meja_dan_kursi_3.set_luxFactor(0, LUXFACTOR_1_MEJA_DAN_KURSI_3);
+    pameran_poster_1.set_luxFactor(0, LUXFACTOR_1_PAMERAN_POSTER_1);
+    pameran_poster_2.set_luxFactor(0, LUXFACTOR_1_PAMERAN_POSTER_2);
+    panggung_serbaguna.set_luxFactor(0, LUXFACTOR_1_PANGGUNG_SERBAGUNA);
+    pejalan_kaki_1.set_luxFactor(0, LUXFACTOR_1_PEJALAN_KAKI_1);
+    pejalan_kaki_2.set_luxFactor(0, LUXFACTOR_1_PEJALAN_KAKI_2);
+    pejalan_kaki_3.set_luxFactor(0, LUXFACTOR_1_PEJALAN_KAKI_3);
+    pejalan_kaki_4.set_luxFactor(0, LUXFACTOR_1_PEJALAN_KAKI_4);
 
     // Start I2C communication bus
     Wire.begin(PIN_SDA, PIN_SCL);

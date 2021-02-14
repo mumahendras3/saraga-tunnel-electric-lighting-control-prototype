@@ -23,11 +23,10 @@ if (!mongoClient.isConnected()) {
 // Some more variable definitions
 const mqttPort = 1883; // MQTT server port
 const httpPort = 3000; // HTTP web server port
-const illuminanceRegex = /Ē\n([0-9.]+)\slx/; // The regex to parse the desired illuminance value from the given pdf files
-const brightnessRegex = /Dimming\sValue\s=\s([0-9.]+)%/;
+const illuminanceRegex = /\(Point\)\nHorizontal illuminance\nHeight:.*m\n([0-9.]+) lx/; // The regex to parse the desired illuminance value from the given pdf files
+const brightnessRegex = /Tingkat Intensitas Cahaya Lampu = ([0-9.]+)%/;
 const setpointsDir = 'setpoints'; // the directory that contains all setpoint json files
 const imagesDir = 'public/images'; // Public images directory
-const binDir = 'bin'; // external executable files directory
 let db; // Variable to store the database object after successfull connection to MongoDB
 let setpoints = []; // An array to hold all the setpoints data at runtime
 let sent = {}; // An object that contains the last time setpoints have been sent for each area/location
@@ -75,6 +74,7 @@ function readSetpoints(setpointsDir, setpointsArray, illumRegex, dimRegex) {
         setpointsArray.splice(0, setpointsArray.length);
         files.forEach(file => {
             if (path.posix.extname(file) != '.pdf') return;
+            if (/Images/.test(file)) return;
             let setpoint = {};
             fs.readFile(path.posix.join(setpointsDir, file), (err, dataBuffer) => {
                 if (err) throw err;
@@ -87,7 +87,7 @@ function readSetpoints(setpointsDir, setpointsArray, illumRegex, dimRegex) {
                     throw err;
                 });
             });
-            const split = file.replace('.pdf', '').toLowerCase().split('-');
+            const split = file.replace('_Report', '').replace('_Calculation_objects.pdf', '').toLowerCase().split('-');
             setpoint['time'] = split[0];
             setpoint['area'] = split[1].replace(/\s|_+/g, '-');
             setpointsArray.push(setpoint);
@@ -152,32 +152,29 @@ function extractImages(pdfDir, imgDir) {
     });
     fs.readdir(pdfDir, (err, files) => {
         files.forEach(file => {
-            const binPath = path.posix.join(binDir, 'pdfimages.exe');
+            if (/Calculation_objects/.test(file)) return;
             const pdfPath = path.posix.join(pdfDir, file);
-            const fileNameNoExt = file.replace('.pdf', '');
+            const fileNameNoExt = file.replace('_Report', '').replace('_Images.pdf', '');
             const imgPath = path.posix.join(imgDir, fileNameNoExt);
-            const child = execFile(binPath, ['-j', '-l', '1', pdfPath, imgPath], (err, stdout, stderr) => {
+            execFile('pdfimages.exe', ['-j', '-l', '1', pdfPath, imgPath], err => {
                 if (err) throw err;
-                // Rename the image files so the order is right
-                // <file_name>-1.jpg for the illuminance distribution image
-                // <file_name>-2.jpg for the illuminance distribution legend image
-                fs.rename(imgPath + '-0004.jpg', imgPath + '-1.jpg', err => {
-                    if (err) throw err;
-                });
-                fs.rename(imgPath + '-0002.jpg', imgPath + '-2.jpg', err => {
-                    if (err) throw err;
-                });
-                // Clean leftover images
+                // Clean unneeded files
                 fs.unlink(imgPath + '-0000.jpg', err => {
                     if (err) throw err;
                 });
                 fs.unlink(imgPath + '-0001.pgm', err => {
                     if (err) throw err;
                 });
-                fs.unlink(imgPath + '-0003.pgm', err => {
+                // Naming convention for the image files so that the order is right
+                // <file_name>-1.jpg for the illuminance distribution image
+                // <file_name>-2.jpg for the illuminance distribution legend image
+                fs.rename(imgPath + '-0003.jpg', imgPath + '-1.jpg', err => {
                     if (err) throw err;
                 });
-                fs.unlink(imgPath + '-0005.pgm', err => {
+                // Crop the legend image first
+                execFileSync('magick.exe', ['convert', imgPath + '-0002.jpg', '-crop', '100%x50%+0+0', imgPath + '-2.jpg']);
+                // Remove the leftovers
+                fs.unlink(imgPath + '-0002.jpg', err => {
                     if (err) throw err;
                 });
             });
@@ -218,7 +215,7 @@ mqttServer.listen(mqttPort, function() {
 const express = require('express');
 const ws = require('websocket-stream');
 const fileUpload = require('express-fileupload'); // A simple express middleware for uploading files
-const { execFile } = require('child_process'); // Needed to execute pdfimages.exe (to extract images from pdf)
+const { execFile, execFileSync } = require('child_process'); // Needed to execute pdfimages.exe (to extract images from pdf)
 const app = express();
 app.use(fileUpload({useTempFiles: true}));
 app.use(express.static('public'));
@@ -266,11 +263,13 @@ app.get('/get-images', (req, res) => {
         let pathArray = [];
         for (let i = 0; i < files.length; i++) {
             if (files[i] == 'building_layout.jpeg') continue;
+            if (files[i] == 'logo_cita.png') continue;
             pathArray.push(path.posix.join(imagesDir.split('/')[1], files[i]));
         }
         res.send(JSON.stringify(pathArray));
     });
 });
+// Add /get-setpoints GET handler (for getting setpoints value)
 app.get('/get-setpoints', (req, res) => {
     res.send(JSON.stringify(setpoints));
 });
@@ -283,9 +282,10 @@ httpServer.listen(httpPort, function() {
 // Fired when a message is published
 aedes.on('publish', (packet, client) => {
     // for debugging
-    const split = packet.topic.split('/');
     const payloadStr = String(packet.payload);
     console.log(packet.topic, payloadStr);
+    // Handle messages
+    const split = packet.topic.split('/');
     if (split[0] + '/' + split[1] == 'status/time') syncTime(payloadStr);
     else if (split[0] == 'status') saveData(split[1], payloadStr);
 });

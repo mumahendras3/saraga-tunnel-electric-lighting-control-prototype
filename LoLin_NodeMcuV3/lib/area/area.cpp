@@ -15,6 +15,12 @@ void area::set_address(uint8_t arr[][3]) {
         }
     }
 }
+// Method to set luxFactor of n'th sensor in the area to 'factor'
+void area::set_luxFactor(uint8_t n, float factor) {
+    if (factor > 1.44) sensor[n].luxFactor = 1.44;
+    else if (factor < 0.96) sensor[n].luxFactor = 0.96;
+    else sensor[n].luxFactor = factor;
+}
 // Method to initialize all sensors in the area
 void area::sensors_init() {
     for (uint8_t n = 0; n < num_sensors; n++) {
@@ -63,20 +69,13 @@ bool area::sensors_finished() {
 // save the smallest illuminance value of the area
 void area::calc_lux() {
     float sum = 0;
-    // float min = 70000;
     for (uint8_t n = 0; n < num_sensors; n++) {
       float val = sensor[n].getLux();
       sum += val;
-    //   if (val < min) min = val;
     }
     avg_lux = sum / num_sensors;
-    // lux_min = min;
     calculated = true;
 }
-// // Method to calculate the overall uniformity of the area
-// void area::calc_uniformity() {
-//     uniformity = lux_min / avg_lux;
-// }
 // Method to check the average lux calculation status in the area
 bool area::lux_calculated() {
     return calculated;

@@ -46,6 +46,8 @@ class area {
     area(uint8_t num_sensors, uint8_t num_leds, uint8_t led_index, float distance);
     // Method to set sensor addresses for the area
     void set_address(uint8_t arr[][3]);
+    // Method to set luxFactor of n'th sensor in the area to 'factor'
+    void set_luxFactor(uint8_t n, float factor);
     // Method to initialize all sensors in the area
     void sensors_init();
     // Method to start measurement for all sensors in the area

@@ -24,7 +24,7 @@ void reconnect(PubSubClient * client) {
     // Loop until we're reconnected
     while (!client->connected()) {
         Serial.print("Attempting MQTT connection...");
-        // Create a random client ID
+        // Create a client ID
         String clientId = "NodeMcuV3";
         // Attempt to connect
         if (client->connect(clientId.c_str())) {

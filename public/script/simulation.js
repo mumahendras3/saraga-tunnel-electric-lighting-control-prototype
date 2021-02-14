@@ -12,9 +12,9 @@ function addImgNode(id) {
     .then(res => res.json())
     .then(async res => {
         if (res == []) return;
-        if (res == ['building_layout.jpeg']) return;
-        if (res == ['logo_cita.png']) return;
-        if (res == ['building_layout.jpeg', 'logo_cita.png']) return;
+        // if (res == ['building_layout.jpeg']) return;
+        // if (res == ['logo_cita.png']) return;
+        // if (res == ['building_layout.jpeg', 'logo_cita.png']) return;
         let parentNode = document.getElementById(id);
         // Empty the parent node first
         // parentNode.textContent = '';

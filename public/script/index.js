@@ -10,7 +10,7 @@ const client = mqtt.connect('ws://' + serverAddress + ':' + serverPort);
 
 // Subscribe to some topics
 client.subscribe('status/#');
-client.subscribe('set/illuminance/+');
+// client.subscribe('set/illuminance/+');
 
 // Get elements
 let uploadForm = document.querySelector('form');

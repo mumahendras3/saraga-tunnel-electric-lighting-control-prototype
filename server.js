@@ -156,7 +156,7 @@ function extractImages(pdfDir, imgDir) {
             const pdfPath = path.posix.join(pdfDir, file);
             const fileNameNoExt = file.replace('_Report', '').replace('_Images.pdf', '');
             const imgPath = path.posix.join(imgDir, fileNameNoExt);
-            execFile('pdfimages.exe', ['-j', '-l', '1', pdfPath, imgPath], err => {
+            execFile('pdfimages', ['-j', '-l', '1', pdfPath, imgPath], err => {
                 if (err) throw err;
                 // Clean unneeded files
                 fs.unlink(imgPath + '-0000.jpg', err => {
@@ -172,7 +172,7 @@ function extractImages(pdfDir, imgDir) {
                     if (err) throw err;
                 });
                 // Crop the legend image first
-                execFileSync('magick.exe', ['convert', imgPath + '-0002.jpg', '-crop', '100%x50%+0+0', imgPath + '-2.jpg']);
+                execFileSync('magick', ['convert', imgPath + '-0002.jpg', '-crop', '100%x50%+0+0', imgPath + '-2.jpg']);
                 // Remove the leftovers
                 fs.unlink(imgPath + '-0002.jpg', err => {
                     if (err) throw err;
@@ -215,7 +215,7 @@ mqttServer.listen(mqttPort, function() {
 const express = require('express');
 const ws = require('websocket-stream');
 const fileUpload = require('express-fileupload'); // A simple express middleware for uploading files
-const { execFile, execFileSync } = require('child_process'); // Needed to execute pdfimages.exe (to extract images from pdf)
+const { execFile, execFileSync } = require('child_process'); // Needed to execute pdfimages (to extract images from pdf)
 const app = express();
 app.use(fileUpload({useTempFiles: true}));
 app.use(express.static('public'));

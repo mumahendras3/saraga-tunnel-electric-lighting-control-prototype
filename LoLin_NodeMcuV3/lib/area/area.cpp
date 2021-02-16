@@ -105,6 +105,8 @@ void area::leds_update() {
 }
 // Method to apply the brightness and RGB value of this LED group to the LED strip
 void area::leds_apply(Adafruit_NeoPixel *strip) {
+    extern uint8_t mode;
+    if (mode == 0) brightness = 1;
     uint8_t r = red * brightness;
     uint8_t g = green * brightness;
     uint8_t b = blue * brightness;

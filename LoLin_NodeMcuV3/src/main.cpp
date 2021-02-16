@@ -20,6 +20,7 @@ const char* mqtt_server = "192.168.43.188";
 bool update_strip = false;
 volatile bool start_measuring = false;
 volatile bool send_data = false;
+uint8_t mode = 1; // 1: close loop mode, 0: open loop mode
 
 // Sensor addresses for each area
 // one row per sensor, first column for I2C_Mux_Number, second column
@@ -91,6 +92,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     // Set time to server time
     if (strcmp(topic, "set/time") == 0) {
         rtc.adjust(DateTime(parse_int(payload, length)));
+    }
+    // Set operation mode
+    else if (strcmp(topic, "set/mode") == 0) {
+        mode = parse_int(payload, length);
     }
     // Conditional statements to handle various topic
     // For area 'Meja dan Kursi 1'

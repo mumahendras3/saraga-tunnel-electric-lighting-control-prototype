@@ -93,14 +93,16 @@
 // Total number of LEDs used at area 'Pameran Poster 1'
 #define NUM_LED_PAMERAN_POSTER_1 4
 // Distance (in meter) from LEDs to measuring point in area 'Pameran Poster 1'
-#define DIST_LED_PAMERAN_POSTER_1 0.159
+// #define DIST_LED_PAMERAN_POSTER_1 0.159
+#define DIST_LED_PAMERAN_POSTER_1 0.15
 
 // Index of first LED in area 'Pameran Poster 2'
 #define INDEX_LED_PAMERAN_POSTER_2 39
 // Total number of LEDs used at area 'Pameran Poster 2'
 #define NUM_LED_PAMERAN_POSTER_2 4
 // Distance (in meter) from LEDs to measuring point in area 'Pameran Poster 2'
-#define DIST_LED_PAMERAN_POSTER_2 0.172
+// #define DIST_LED_PAMERAN_POSTER_2 0.172
+#define DIST_LED_PAMERAN_POSTER_2 0.166
 
 // Index of first LED in area 'Panggung Serbaguna'
 #define INDEX_LED_PANGGUNG_SERBAGUNA 9

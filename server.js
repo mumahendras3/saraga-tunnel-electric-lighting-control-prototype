@@ -152,32 +152,33 @@ function extractImages(pdfDir, imgDir) {
     });
     fs.readdir(pdfDir, (err, files) => {
         files.forEach(file => {
-            if (/Calculation_objects/.test(file)) return;
-            const pdfPath = path.posix.join(pdfDir, file);
-            const fileNameNoExt = file.replace('_Report', '').replace('_Images.pdf', '');
-            const imgPath = path.posix.join(imgDir, fileNameNoExt);
-            execFile('pdfimages', ['-j', '-l', '1', pdfPath, imgPath], err => {
-                if (err) throw err;
-                // Clean unneeded files
-                fs.unlink(imgPath + '-0000.jpg', err => {
+            if (/Images/.test(file)) {
+                const pdfPath = path.posix.join(pdfDir, file);
+                const fileNameNoExt = file.replace('_Report', '').replace('_Images.pdf', '');
+                const imgPath = path.posix.join(imgDir, fileNameNoExt);
+                execFile('pdfimages', ['-j', '-l', '1', pdfPath, imgPath], err => {
                     if (err) throw err;
+                    // Clean unneeded files
+                    fs.unlink(imgPath + '-0000.jpg', err => {
+                        if (err) throw err;
+                    });
+                    fs.unlink(imgPath + '-0001.pgm', err => {
+                        if (err) throw err;
+                    });
+                    // Naming convention for the image files so that the order is right
+                    // <file_name>-1.jpg for the illuminance distribution image
+                    // <file_name>-2.jpg for the illuminance distribution legend image
+                    fs.rename(imgPath + '-0003.jpg', imgPath + '-1.jpg', err => {
+                        if (err) throw err;
+                    });
+                    // Crop the legend image first
+                    execFileSync('magick', ['convert', imgPath + '-0002.jpg', '-crop', '100%x50%+0+0', imgPath + '-2.jpg']);
+                    // Remove the leftovers
+                    fs.unlink(imgPath + '-0002.jpg', err => {
+                        if (err) throw err;
+                    });
                 });
-                fs.unlink(imgPath + '-0001.pgm', err => {
-                    if (err) throw err;
-                });
-                // Naming convention for the image files so that the order is right
-                // <file_name>-1.jpg for the illuminance distribution image
-                // <file_name>-2.jpg for the illuminance distribution legend image
-                fs.rename(imgPath + '-0003.jpg', imgPath + '-1.jpg', err => {
-                    if (err) throw err;
-                });
-                // Crop the legend image first
-                execFileSync('magick', ['convert', imgPath + '-0002.jpg', '-crop', '100%x50%+0+0', imgPath + '-2.jpg']);
-                // Remove the leftovers
-                fs.unlink(imgPath + '-0002.jpg', err => {
-                    if (err) throw err;
-                });
-            });
+            }
         });
     });
 }

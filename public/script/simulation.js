@@ -33,7 +33,7 @@ function addImgNode(id) {
             const areaName = split[1].replace(/_+/g, ' '); // Just in case there are underscores
             const areaNameForId = areaName.replace(/ +/g, '-').toLowerCase(); // Will be used later
             // let title = areaName + ' (' + time + ', Ē = ';
-            let title = 'Waktu: ' + time + ', Tingkat Intensitas Cahaya Lampu: ';
+            let title = 'Waktu: ' + time + ', Persentase Peredupan Lampu: ';
             if (index % 2 == 0) {
                 title += setpoints[index/2].brightness + '%, Target Iluminansi: ';
                 title += setpoints[index/2].illuminance.replace(/\./, ',') + ' lx';

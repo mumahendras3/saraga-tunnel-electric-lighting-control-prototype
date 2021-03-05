@@ -13,53 +13,52 @@
 // Total number of light sensors used at area 'Meja dan Kursi 1'
 #define NUM_BH1750_MEJA_DAN_KURSI_1 1
 // luxFactor for each sensor in area 'Meja dan Kursi 1'
-#define LUXFACTOR_1_MEJA_DAN_KURSI_1 0.88
+#define LUXFACTOR_1_MEJA_DAN_KURSI_1 1.05
 
 // Total number of light sensors used at area 'Meja dan Kursi 2'
 #define NUM_BH1750_MEJA_DAN_KURSI_2 1
 // luxFactor for each sensor in area 'Meja dan Kursi 2'
-#define LUXFACTOR_1_MEJA_DAN_KURSI_2 0.79
+#define LUXFACTOR_1_MEJA_DAN_KURSI_2 1.07
 
 // Total number of light sensors used at area 'Meja dan Kursi 3'
 #define NUM_BH1750_MEJA_DAN_KURSI_3 1
 // luxFactor for each sensor in area 'Meja dan Kursi 3'
-#define LUXFACTOR_1_MEJA_DAN_KURSI_3 0.76
+#define LUXFACTOR_1_MEJA_DAN_KURSI_3 1.03
 
 // Total number of light sensors used at area 'Pameran Poster 1'
 #define NUM_BH1750_PAMERAN_POSTER_1 1
 // luxFactor for each sensor in area 'Pameran Poster 1'
-#define LUXFACTOR_1_PAMERAN_POSTER_1 0.98
+#define LUXFACTOR_1_PAMERAN_POSTER_1 1.01
  
 // Total number of light sensors used at area 'Pameran Poster 2'
 #define NUM_BH1750_PAMERAN_POSTER_2 1
 // luxFactor for each sensor in area 'Pameran Poster 2'
-#define LUXFACTOR_1_PAMERAN_POSTER_2 0.98
+#define LUXFACTOR_1_PAMERAN_POSTER_2 0.97
 
 // Total number of light sensors used at area 'Panggung Serbaguna'
 #define NUM_BH1750_PANGGUNG_SERBAGUNA 1
 // luxFactor for each sensor in area 'Panggung Serbaguna'
-#define LUXFACTOR_1_PANGGUNG_SERBAGUNA 0.93
+#define LUXFACTOR_1_PANGGUNG_SERBAGUNA 1.09
 
 // Total number of light sensors used at area 'Pejalan Kaki 1'
 #define NUM_BH1750_PEJALAN_KAKI_1 1
 // luxFactor for each sensor in area 'Pejalan Kaki 1'
-#define LUXFACTOR_1_PEJALAN_KAKI_1 0.95
+#define LUXFACTOR_1_PEJALAN_KAKI_1 1.11
 
 // Total number of light sensors used at area 'Pejalan Kaki 2'
 #define NUM_BH1750_PEJALAN_KAKI_2 1
 // luxFactor for each sensor in area 'Pejalan Kaki 2'
-#define LUXFACTOR_1_PEJALAN_KAKI_2 0.88
+#define LUXFACTOR_1_PEJALAN_KAKI_2 1.09
 
 // Total number of light sensors used at area 'Pejalan Kaki 3'
 #define NUM_BH1750_PEJALAN_KAKI_3 1
 // luxFactor for each sensor in area 'Pejalan Kaki 3'
-#define LUXFACTOR_1_PEJALAN_KAKI_3 0.80
+#define LUXFACTOR_1_PEJALAN_KAKI_3 1.08
 
 // Total number of light sensors used at area 'Pejalan Kaki 4'
 #define NUM_BH1750_PEJALAN_KAKI_4 1
 // luxFactor for each sensor in area 'Pejalan Kaki 4'
-#define LUXFACTOR_1_PEJALAN_KAKI_4 1.03
-
+#define LUXFACTOR_1_PEJALAN_KAKI_4 0.98
 
 // Luminous intensity of the red, green, and blue LED for each pixel in the LED strip
 // in mcd (milicandela) (taken from datasheet)

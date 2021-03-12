@@ -24,7 +24,7 @@ if (!mongoClient.isConnected()) {
 const mqttPort = 1883; // MQTT server port
 const httpPort = 3000; // HTTP web server port
 const illuminanceRegex = /\(Point\)\nHorizontal illuminance\nHeight:.*m\n([0-9.]+) lx/; // The regex to parse the desired illuminance value from the given pdf files
-const brightnessRegex = /Tingkat Intensitas Cahaya Lampu = ([0-9.]+)%/;
+const brightnessRegex = /Persentase Peredupan Lampu = ([0-9.]+)%/;
 const setpointsDir = 'setpoints'; // the directory that contains all setpoint json files
 const imagesDir = 'public/images'; // Public images directory
 let db; // Variable to store the database object after successfull connection to MongoDB

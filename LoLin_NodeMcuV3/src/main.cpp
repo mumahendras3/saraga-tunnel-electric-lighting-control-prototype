@@ -14,9 +14,9 @@
 #define PIN_INTERRUPT D1
 
 // Global variables
-const char* ssid = "RN8Pro";
-const char* password = "Mahendras9708";
-const char* mqtt_server = "192.168.43.188";
+const char* ssid = "My_Wifi";
+const char* password = "My_Wifi_Password";
+const char* mqtt_server = "MQTT_Server_Address";
 bool update_strip = false;
 volatile bool start_measuring = false;
 volatile bool send_data = false;

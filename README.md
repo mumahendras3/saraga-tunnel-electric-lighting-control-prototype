@@ -1,5 +1,5 @@
-# Saraga ITB Tunnel's Artificial Lighting Control System Prototype
-All the source codes that are used for Saraga ITB tunnel's artificial lighting control system prototype as my undergraduate final assignment
+# Saraga ITB Tunnel's Electric Lighting Control System Prototype
+All the source codes that are used for Saraga ITB tunnel's electric lighting control system prototype as my undergraduate final assignment
 
 # DEPENDENCIES
 1. Node.js with npm
@@ -8,7 +8,7 @@ All the source codes that are used for Saraga ITB tunnel's artificial lighting c
 4. PlatformIO
 
 # SETUP
-1. Clone this repo (`git clone https://github.com/mumahendras3/saraga-tunnel-artificial-lighting-control-prototype.git`)
+1. Clone this repo (`git clone https://github.com/mumahendras3/saraga-tunnel-electric-lighting-control-prototype.git`)
 2. Install these libraries in PlatformIO: Adafruit NeoPixel, PubSubClient, RTClib, and hp_BH1750
 3. Compile and upload the microcontroller program
 4. Run `npm install` on the root of this repo

@@ -19,5 +19,4 @@ All the source codes that are used for Saraga ITB tunnel's electric lighting con
 3. Upload DIALux simulation result PDFs as desired
 4. Connect the PCB to a 5V DC power source
 5. Make sure the microcontroller is connected to the same network as the server computer
-
-Done!
+6. Done!

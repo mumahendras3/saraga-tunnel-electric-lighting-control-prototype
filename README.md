@@ -17,9 +17,9 @@ All the source codes that are used for Saraga ITB tunnel's electric lighting con
 
 ## RUNNING
 1. Make sure the MongoDB server that will be used is already running
-1. Run `node server.js` on the root of this repo
-2. Access the web-based HMI on port 3000
-3. Upload DIALux simulation result PDFs as desired
-4. Connect the PCB to a 5V DC power source
-5. Make sure the microcontroller is connected to the same network as the server computer
-6. Done!
+2. Run `node server.js` on the root of this repo
+3. Access the web-based HMI on port 3000
+4. Upload DIALux simulation result PDFs as desired
+5. Connect the PCB to a 5V DC power source
+6. Make sure the microcontroller is connected to the same network as the server computer
+7. Done!

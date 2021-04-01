@@ -1,5 +1,5 @@
 # Saraga ITB Tunnel's Electric Lighting Control System Prototype
-All the source codes that are used for Saraga ITB tunnel's electric lighting control system prototype as my undergraduate final assignment
+All the source codes that are used for Saraga ITB tunnel's electric lighting control system prototype as [my undergraduate final project](https://digilib.itb.ac.id/index.php/gdl/view/53745)
 
 ## DEPENDENCIES
 1. Node.js with npm
